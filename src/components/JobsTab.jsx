@@ -102,11 +102,11 @@ export default function JobsTab({ jobs, setJobs, reporters, onLog }) {
     .filter(j => !filterJobDate || (j.deposition_datetime || '').startsWith(filterJobDate))
     .sort((a, b) => {
       if (sortKey === 'deposition_datetime' && sortDir === 'asc') {
-        const today = new Date().toISOString().split('T')[0]
+        const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
         const ad = (a.deposition_datetime || '').split('T')[0]
         const bd = (b.deposition_datetime || '').split('T')[0]
-        const aFuture = ad >= today
-        const bFuture = bd >= today
+        const aFuture = ad >= tenDaysAgo
+        const bFuture = bd >= tenDaysAgo
         if (aFuture && !bFuture) return -1
         if (!aFuture && bFuture) return 1
         return (a.deposition_datetime || '').localeCompare(b.deposition_datetime || '')
