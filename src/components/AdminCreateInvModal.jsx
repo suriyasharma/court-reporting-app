@@ -179,8 +179,14 @@ export default function AdminCreateInvModal({
             </div>
 
             {adminInvType === 'STANDARD' && <>
-              {/* Appearance fees */}
+              {/* Appearance / in-person fees */}
               <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!adminInvInput.useInPersonFee} onChange={e => setAdminInvInput({ ...adminInvInput, useInPersonFee: e.target.checked })} className="w-4 h-4 rounded" />
+                  <span className="text-sm font-medium">In-Person Fee</span>
+                  {(rc.inPersonFee || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.inPersonFee)}</span>}
+                </label>
+                {adminInvInput.useInPersonFee && !(rc.inPersonFee) && <p className="text-xs text-red-500 ml-7">No in-person fee set on this reporter's rate card.</p>}
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={!!adminInvInput.useAppearanceFee} onChange={e => setAdminInvInput({ ...adminInvInput, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false, hours: 0 })} className="w-4 h-4 rounded" />
                   <span className="text-sm font-medium">Full Day Appearance Fee</span>
@@ -222,7 +228,7 @@ export default function AdminCreateInvModal({
                   {(rc.minimumTranscriptAmount || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.minimumTranscriptAmount)}</span>}
                 </label>
                 {adminInvInput.useMinTranscript && !(rc.minimumTranscriptAmount) && <p className="text-xs text-red-500 ml-7">No minimum transcript amount set on this reporter's rate card.</p>}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium mb-1">No. of Copies</label>
                     <input type="number" value={adminInvInput.numCopies || ''} onChange={e => setAdminInvInput({ ...adminInvInput, numCopies: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
@@ -233,6 +239,11 @@ export default function AdminCreateInvModal({
                     <input type="number" value={adminInvInput.videoPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
                     <p className="text-xs text-gray-400 mt-1">{fmt(rc.videoSurcharge || 0)}/pg surcharge</p>
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Exhibit Pages</label>
+                    <input type="number" value={adminInvInput.exhibitPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                    <p className="text-xs text-gray-400 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
+                  </div>
                 </div>
               </div>
 
@@ -240,7 +251,11 @@ export default function AdminCreateInvModal({
                 <label className="block text-sm font-medium mb-1">Expedite</label>
                 <select value={adminInvInput.expediteDays} onChange={e => setAdminInvInput({ ...adminInvInput, expediteDays: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg text-sm">
                   <option value={0}>Standard (No Expedite)</option>
-                  {settings.expediteRates.map(e => <option key={e.days} value={e.days}>{e.label} (+{e.percent}%)</option>)}
+                  {(rc.expediteRates?.length ? rc.expediteRates : settings.expediteRates).map(e => (
+                    <option key={e.days} value={e.days}>
+                      {e.label} {e.useAmount && e.amount > 0 ? `(+${fmt(e.amount)}/pg)` : `(+${e.percent}%)`}
+                    </option>
+                  ))}
                 </select>
               </div>
               <AdditionalChargesSection input={adminInvInput} setInput={setAdminInvInput} rc={rc} />

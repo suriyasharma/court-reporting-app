@@ -79,8 +79,14 @@ export default function AdminEditInvModal({
           </div>
 
           {adminEditInvType === 'STANDARD' && <>
-            {/* Appearance fees */}
+            {/* Appearance / in-person fees */}
             <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!adminEditInvInput.useInPersonFee} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, useInPersonFee: e.target.checked })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">In-Person Fee</span>
+                {(rc.inPersonFee || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.inPersonFee)}</span>}
+              </label>
+              {adminEditInvInput.useInPersonFee && !(rc.inPersonFee) && <p className="text-xs text-red-500 ml-7">No in-person fee set on this reporter's rate card.</p>}
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={!!adminEditInvInput.useAppearanceFee} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false, hours: 0 })} className="w-4 h-4 rounded" />
                 <span className="text-sm font-medium">Full Day Appearance Fee</span>
@@ -122,7 +128,7 @@ export default function AdminEditInvModal({
                 {(rc.minimumTranscriptAmount || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.minimumTranscriptAmount)}</span>}
               </label>
               {adminEditInvInput.useMinTranscript && !(rc.minimumTranscriptAmount) && <p className="text-xs text-red-500 ml-7">No minimum transcript amount set on this reporter's rate card.</p>}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-medium mb-1">No. of Copies</label>
                   <input type="number" value={adminEditInvInput.numCopies || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, numCopies: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
@@ -133,6 +139,11 @@ export default function AdminEditInvModal({
                   <input type="number" value={adminEditInvInput.videoPages || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
                   <p className="text-xs text-gray-400 mt-1">{fmt(rc.videoSurcharge || 0)}/pg surcharge</p>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Exhibit Pages</label>
+                  <input type="number" value={adminEditInvInput.exhibitPages || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <p className="text-xs text-gray-400 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
+                </div>
               </div>
             </div>
 
@@ -140,7 +151,11 @@ export default function AdminEditInvModal({
               <label className="block text-sm font-medium mb-1">Expedite</label>
               <select value={adminEditInvInput.expediteDays} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, expediteDays: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg text-sm">
                 <option value={0}>Standard (No Expedite)</option>
-                {settings.expediteRates.map(e => <option key={e.days} value={e.days}>{e.label} (+{e.percent}%)</option>)}
+                {(rc.expediteRates?.length ? rc.expediteRates : settings.expediteRates).map(e => (
+                  <option key={e.days} value={e.days}>
+                    {e.label} {e.useAmount && e.amount > 0 ? `(+${fmt(e.amount)}/pg)` : `(+${e.percent}%)`}
+                  </option>
+                ))}
               </select>
             </div>
             <AdditionalChargesSection input={adminEditInvInput} setInput={setAdminEditInvInput} />

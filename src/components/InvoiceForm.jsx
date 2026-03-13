@@ -52,8 +52,14 @@ export default function InvoiceForm({
           </div>
 
           {invType === 'STANDARD' && <>
-            {/* Appearance fees */}
+            {/* Appearance / in-person fees */}
             <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!input.useInPersonFee} onChange={e => setInput({ ...input, useInPersonFee: e.target.checked })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">In-Person Fee</span>
+                {(rc.inPersonFee || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.inPersonFee)}</span>}
+              </label>
+              {input.useInPersonFee && !(rc.inPersonFee) && <p className="text-xs text-red-500 ml-7">No in-person fee set on your rate card.</p>}
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={!!input.useAppearanceFee} onChange={e => setInput({ ...input, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false, hours: 0 })} className="w-4 h-4 rounded" />
                 <span className="text-sm font-medium">Full Day Appearance Fee</span>
@@ -95,7 +101,7 @@ export default function InvoiceForm({
                 {(rc.minimumTranscriptAmount || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.minimumTranscriptAmount)}</span>}
               </label>
               {input.useMinTranscript && !(rc.minimumTranscriptAmount) && <p className="text-xs text-red-500 ml-7">No minimum transcript amount set on your rate card.</p>}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">No. of Copies</label>
                   <input type="number" value={input.numCopies || ''} onChange={e => setInput({ ...input, numCopies: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
@@ -106,6 +112,11 @@ export default function InvoiceForm({
                   <input type="number" value={input.videoPages || ''} onChange={e => setInput({ ...input, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
                   <p className="text-xs text-gray-500 mt-1">{fmt(rc.videoSurcharge || 0)}/pg surcharge</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Exhibit Pages</label>
+                  <input type="number" value={input.exhibitPages || ''} onChange={e => setInput({ ...input, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                  <p className="text-xs text-gray-500 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
+                </div>
               </div>
             </div>
 
@@ -113,7 +124,11 @@ export default function InvoiceForm({
               <label className="block text-sm font-medium mb-1">Expedite</label>
               <select value={input.expediteDays} onChange={e => setInput({ ...input, expediteDays: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg">
                 <option value={0}>Standard (No Expedite)</option>
-                {settings.expediteRates.map(e => <option key={e.days} value={e.days}>{e.label} (+{e.percent}%)</option>)}
+                {(rc.expediteRates?.length ? rc.expediteRates : settings.expediteRates).map(e => (
+                  <option key={e.days} value={e.days}>
+                    {e.label} {e.useAmount && e.amount > 0 ? `(+${fmt(e.amount)}/pg)` : `(+${e.percent}%)`}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

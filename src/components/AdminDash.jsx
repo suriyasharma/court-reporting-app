@@ -17,8 +17,8 @@ const emptyAdminInvInput = () => ({
   hours: 0, originalPages: 0, copyPages: 0, expediteDays: 0,
   additionalCharges: [], caseName: '', jobNumber: '', jobDate: '',
   rb9JobNumber: '', invoiceComment: '', useAppearanceFee: false,
-  useAppearanceFeeHalfDay: false, useMinTranscript: false,
-  numCopies: 0, videoPages: 0,
+  useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false,
+  numCopies: 0, videoPages: 0, exhibitPages: 0,
   jobId: '', submissionDate: '', onTime: '',
 })
 
@@ -40,7 +40,7 @@ export default function AdminDash({
   const [addRep, setAddRep] = useState(false)
   const [addAdm, setAddAdm] = useState(false)
   const [editRep, setEditRep] = useState(null)
-  const [newRep, setNewRep] = useState({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
+  const [newRep, setNewRep] = useState({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
   const [newAdm, setNewAdm] = useState({ displayName: '', code: '' })
   const [adminCreateInv, setAdminCreateInv] = useState(false)
   const [adminInvRepId, setAdminInvRepId] = useState('')
@@ -188,13 +188,13 @@ export default function AdminDash({
       caseName: inv.caseInfo?.caseName || '', jobNumber: inv.caseInfo?.jobNumber || '',
       jobDate: inv.caseInfo?.jobDate || '', rb9JobNumber: inv.caseInfo?.rb9JobNumber || '',
       invoiceComment: inv.invoiceComment || '', useAppearanceFee: false,
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, numCopies: 0, videoPages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0,
     }
     setAdminEditInv(inv)
     setAdminEditInvType(inv.invoiceType || 'STANDARD')
     setAdminEditInvNumber(inv.invoiceNumber || '')
     setAdminEditInvInput({
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, numCopies: 0, videoPages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0,
       ...savedInput, pdfLink: inv.pdfLink || ''
     })
   }
@@ -224,7 +224,7 @@ export default function AdminDash({
   }
 
   // ── Reporter management ────────────────────────────────────────────────────
-  const REPORTER_TEMPLATE_CSV = 'name,login_code,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee_full_day,appearance_fee_half_day,minimum_transcript_amount,minimum_transcript_copy_amount,video_surcharge,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent\nJane Reporter,REP001,75.00,6.50,1.25,150.00,125.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10\nJohn Reporter,REP002,80.00,7.00,1.50,150.00,125.00,50.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10'
+  const REPORTER_TEMPLATE_CSV = 'name,login_code,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee_full_day,appearance_fee_half_day,minimum_transcript_amount,minimum_transcript_copy_amount,video_surcharge,exhibit_surcharge,in_person_fee,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent\nJane Reporter,REP001,75.00,6.50,1.25,150.00,125.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10\nJohn Reporter,REP002,80.00,7.00,1.50,150.00,125.00,50.00,0.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10'
   const downloadReporterTemplate = () => {
     const blob = new Blob([REPORTER_TEMPLATE_CSV], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -270,6 +270,8 @@ export default function AdminDash({
           minimumTranscriptAmount: Math.round(parseFloat(r.minimum_transcript_amount || 0) * 100),
           minimumTranscriptCopyAmount: Math.round(parseFloat(r.minimum_transcript_copy_amount || 0) * 100),
           videoSurcharge: Math.round(parseFloat(r.video_surcharge || 0) * 100),
+          exhibitSurcharge: Math.round(parseFloat(r.exhibit_surcharge || 0) * 100),
+          inPersonFee: Math.round(parseFloat(r.in_person_fee || 0) * 100),
           expediteRates: settings.expediteRates.map(exp => ({
             ...exp,
             percent: parseInt(r[`expedite_${exp.days}d_percent`]) >= 0 && r[`expedite_${exp.days}d_percent`] !== ''
@@ -308,6 +310,8 @@ export default function AdminDash({
         minimumTranscriptAmount: Math.round(parseFloat(newRep.minimumTranscriptAmount || 0) * 100),
         minimumTranscriptCopyAmount: Math.round(parseFloat(newRep.minimumTranscriptCopyAmount || 0) * 100),
         videoSurcharge: Math.round(parseFloat(newRep.videoSurcharge || 0) * 100),
+        exhibitSurcharge: Math.round(parseFloat(newRep.exhibitSurcharge || 0) * 100),
+        inPersonFee: Math.round(parseFloat(newRep.inPersonFee || 0) * 100),
         profileAdditionalFees: newRep.profileAdditionalFees || [],
         expediteRates: newRep.expediteRates,
       },
@@ -315,7 +319,7 @@ export default function AdminDash({
       createdAt: now(),
     }])
     log('Reporter Added', newRep.displayName)
-    setNewRep({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
+    setNewRep({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
     setAddRep(false)
   }
 
@@ -331,6 +335,8 @@ export default function AdminDash({
     minimumTranscriptAmount: ((r.rateCard.minimumTranscriptAmount || 0) / 100).toFixed(2),
     minimumTranscriptCopyAmount: ((r.rateCard.minimumTranscriptCopyAmount || 0) / 100).toFixed(2),
     videoSurcharge: ((r.rateCard.videoSurcharge || 0) / 100).toFixed(2),
+    exhibitSurcharge: ((r.rateCard.exhibitSurcharge || 0) / 100).toFixed(2),
+    inPersonFee: ((r.rateCard.inPersonFee || 0) / 100).toFixed(2),
     profileAdditionalFees: r.rateCard.profileAdditionalFees || [],
     expediteRates: r.rateCard.expediteRates || settings.expediteRates.map(e => ({ ...e })),
   })
@@ -351,6 +357,8 @@ export default function AdminDash({
         minimumTranscriptAmount: Math.round(parseFloat(editRep.minimumTranscriptAmount || 0) * 100),
         minimumTranscriptCopyAmount: Math.round(parseFloat(editRep.minimumTranscriptCopyAmount || 0) * 100),
         videoSurcharge: Math.round(parseFloat(editRep.videoSurcharge || 0) * 100),
+        exhibitSurcharge: Math.round(parseFloat(editRep.exhibitSurcharge || 0) * 100),
+        inPersonFee: Math.round(parseFloat(editRep.inPersonFee || 0) * 100),
         profileAdditionalFees: editRep.profileAdditionalFees || [],
         expediteRates: editRep.expediteRates,
       },
@@ -940,6 +948,8 @@ export default function AdminDash({
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div><p className="text-xs text-gray-500 mb-1">Video Surcharge ($)</p><input type="number" step="0.01" value={newRep.videoSurcharge} onChange={e => setNewRep({ ...newRep, videoSurcharge: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">Exhibit Surcharge ($)</p><input type="number" step="0.01" value={newRep.exhibitSurcharge} onChange={e => setNewRep({ ...newRep, exhibitSurcharge: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">In-Person Fee ($)</p><input type="number" step="0.01" value={newRep.inPersonFee} onChange={e => setNewRep({ ...newRep, inPersonFee: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -1003,6 +1013,8 @@ export default function AdminDash({
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div><label className="block text-sm font-medium mb-1">Video Surcharge ($)</label><input type="number" step="0.01" value={editRep.videoSurcharge} onChange={e => setEditRep({ ...editRep, videoSurcharge: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><label className="block text-sm font-medium mb-1">Exhibit Surcharge ($)</label><input type="number" step="0.01" value={editRep.exhibitSurcharge} onChange={e => setEditRep({ ...editRep, exhibitSurcharge: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><label className="block text-sm font-medium mb-1">In-Person Fee ($)</label><input type="number" step="0.01" value={editRep.inPersonFee} onChange={e => setEditRep({ ...editRep, inPersonFee: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
               </div>
               <div>
                 <p className="text-sm font-medium mb-2">Expedite Rates</p>

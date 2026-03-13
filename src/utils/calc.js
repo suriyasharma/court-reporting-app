@@ -16,6 +16,15 @@ export function calcInvoice(input, rc, settings, invoiceType) {
     return { lineItems: items, totalCents: cnaFee }
   }
 
+  // In-person fee — flat fee checkbox
+  if (input.useInPersonFee) {
+    const a = rc.inPersonFee || 0
+    if (a > 0) {
+      items.push({ description: 'In-Person Fee', qty: 1, unitCents: a, amountCents: a })
+      sub += a
+    }
+  }
+
   // Appearance fees — full day and half day are mutually exclusive; both disable hours
   if (input.useAppearanceFee) {
     const a = rc.appearanceFeeFullDay || rc.appearanceFee || 0 // backward compat
@@ -75,19 +84,32 @@ export function calcInvoice(input, rc, settings, invoiceType) {
     }
   }
 
+  // Exhibit surcharge — pages × per-page exhibit rate
+  if (input.exhibitPages) {
+    const rate = rc.exhibitSurcharge || 0
+    const a = input.exhibitPages * rate
+    if (a > 0) {
+      items.push({ description: 'Exhibit Surcharge', qty: input.exhibitPages, unitCents: rate, amountCents: a })
+      sub += a
+    }
+  }
+
   if (input.expediteDays) {
     const exp = expRates.find(e => e.days === input.expediteDays)
     if (exp) {
       let a
       let desc
       if (exp.useAmount && exp.amount > 0) {
-        a = exp.amount
-        desc = `Expedite (${exp.days}d - ${fmt(exp.amount)})`
+        // $ mode = per-page rate × original pages
+        const pages = input.originalPages || 0
+        a = exp.amount * pages
+        desc = `Expedite (${exp.days}d - ${fmt(exp.amount)}/pg)`
+        items.push({ description: desc, qty: pages, unitCents: exp.amount, amountCents: a })
       } else {
         a = Math.round(sub * exp.percent / 100)
         desc = `Expedite (${exp.days}d - ${exp.percent}%)`
+        items.push({ description: desc, qty: 1, unitCents: a, amountCents: a })
       }
-      items.push({ description: desc, qty: 1, unitCents: a, amountCents: a })
       sub += a
     }
   }
