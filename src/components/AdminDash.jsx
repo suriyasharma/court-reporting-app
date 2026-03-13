@@ -40,7 +40,7 @@ export default function AdminDash({
   const [addRep, setAddRep] = useState(false)
   const [addAdm, setAddAdm] = useState(false)
   const [editRep, setEditRep] = useState(null)
-  const [newRep, setNewRep] = useState({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
+  const [newRep, setNewRep] = useState({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
   const [newAdm, setNewAdm] = useState({ displayName: '', code: '' })
   const [adminCreateInv, setAdminCreateInv] = useState(false)
   const [adminInvRepId, setAdminInvRepId] = useState('')
@@ -319,7 +319,7 @@ export default function AdminDash({
       createdAt: now(),
     }])
     log('Reporter Added', newRep.displayName)
-    setNewRep({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
+    setNewRep({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
     setAddRep(false)
   }
 
@@ -338,7 +338,7 @@ export default function AdminDash({
     exhibitSurcharge: ((r.rateCard.exhibitSurcharge || 0) / 100).toFixed(2),
     inPersonFee: ((r.rateCard.inPersonFee || 0) / 100).toFixed(2),
     profileAdditionalFees: r.rateCard.profileAdditionalFees || [],
-    expediteRates: r.rateCard.expediteRates || settings.expediteRates.map(e => ({ ...e })),
+    expediteRates: (r.rateCard.expediteRates || settings.expediteRates.map(e => ({ ...e }))).map(e => ({ ...e, displayAmount: e.useAmount && e.amount ? (e.amount / 100).toFixed(2) : '' })),
   })
 
   const saveEdit = () => {
@@ -971,9 +971,9 @@ export default function AdminDash({
                 <div className="space-y-2">{newRep.expediteRates.map((e, i) => (
                   <div key={e.days} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm font-medium w-12">{e.days}d</span>
-                    <select value={e.useAmount ? 'amount' : 'percent'} onChange={ev => { const rates = [...newRep.expediteRates]; rates[i].useAmount = ev.target.value === 'amount'; setNewRep({ ...newRep, expediteRates: rates }) }} className="px-2 py-1 border rounded text-sm"><option value="percent">%</option><option value="amount">$</option></select>
+                    <select value={e.useAmount ? 'amount' : 'percent'} onChange={ev => { const rates = [...newRep.expediteRates]; rates[i] = { ...rates[i], useAmount: ev.target.value === 'amount', displayAmount: '' }; setNewRep({ ...newRep, expediteRates: rates }) }} className="px-2 py-1 border rounded text-sm"><option value="percent">%</option><option value="amount">$</option></select>
                     {e.useAmount
-                      ? <input type="number" step="0.01" value={e.amount ? (e.amount / 100).toFixed(2) : ''} onChange={ev => { const rates = [...newRep.expediteRates]; rates[i].amount = Math.round(parseFloat(ev.target.value) * 100) || 0; setNewRep({ ...newRep, expediteRates: rates }) }} placeholder="0.00" className="w-20 px-2 py-1 border rounded text-sm" />
+                      ? <input type="text" inputMode="decimal" value={e.displayAmount ?? ''} onChange={ev => { const val = ev.target.value; const rates = [...newRep.expediteRates]; rates[i] = { ...rates[i], displayAmount: val, amount: Math.round(parseFloat(val.replace(/[^0-9.]/g, '')) * 100) || 0 }; setNewRep({ ...newRep, expediteRates: rates }) }} placeholder="0.00" className="w-20 px-2 py-1 border rounded text-sm" />
                       : <input type="number" value={e.percent} onChange={ev => { const rates = [...newRep.expediteRates]; rates[i].percent = parseInt(ev.target.value) || 0; setNewRep({ ...newRep, expediteRates: rates }) }} className="w-16 px-2 py-1 border rounded text-sm" />
                     }
                   </div>
@@ -1021,9 +1021,9 @@ export default function AdminDash({
                 <div className="space-y-2">{editRep.expediteRates.map((e, i) => (
                   <div key={e.days} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm font-medium w-12">{e.days}d</span>
-                    <select value={e.useAmount ? 'amount' : 'percent'} onChange={ev => { const rates = [...editRep.expediteRates]; rates[i].useAmount = ev.target.value === 'amount'; setEditRep({ ...editRep, expediteRates: rates }) }} className="px-2 py-1 border rounded text-sm"><option value="percent">%</option><option value="amount">$</option></select>
+                    <select value={e.useAmount ? 'amount' : 'percent'} onChange={ev => { const rates = [...editRep.expediteRates]; rates[i] = { ...rates[i], useAmount: ev.target.value === 'amount', displayAmount: '' }; setEditRep({ ...editRep, expediteRates: rates }) }} className="px-2 py-1 border rounded text-sm"><option value="percent">%</option><option value="amount">$</option></select>
                     {e.useAmount
-                      ? <input type="number" step="0.01" value={e.amount ? (e.amount / 100).toFixed(2) : ''} onChange={ev => { const rates = [...editRep.expediteRates]; rates[i].amount = Math.round(parseFloat(ev.target.value) * 100) || 0; setEditRep({ ...editRep, expediteRates: rates }) }} placeholder="0.00" className="w-20 px-2 py-1 border rounded text-sm" />
+                      ? <input type="text" inputMode="decimal" value={e.displayAmount ?? ''} onChange={ev => { const val = ev.target.value; const rates = [...editRep.expediteRates]; rates[i] = { ...rates[i], displayAmount: val, amount: Math.round(parseFloat(val.replace(/[^0-9.]/g, '')) * 100) || 0 }; setEditRep({ ...editRep, expediteRates: rates }) }} placeholder="0.00" className="w-20 px-2 py-1 border rounded text-sm" />
                       : <input type="number" value={e.percent} onChange={ev => { const rates = [...editRep.expediteRates]; rates[i].percent = parseInt(ev.target.value) || 0; setEditRep({ ...editRep, expediteRates: rates }) }} className="w-16 px-2 py-1 border rounded text-sm" />
                     }
                   </div>
