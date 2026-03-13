@@ -167,7 +167,7 @@ export default function JobsTab({ jobs, setJobs, reporters, onLog }) {
                     <input type="checkbox" checked={allFilteredSelected} onChange={toggleSelectAll} className="w-4 h-4 rounded cursor-pointer" title="Select all visible" />
                   </th>
                   <th className="px-3 py-2 border-b w-10"></th>
-                  {[['deposition_name','Deposition Name'],['deposition_status','Status'],['deposition_datetime','Event Time'],['event_state','State'],['organization_name','Organization'],['format','Format'],['need_reporter','Reporter Needed'],['need_steno','Steno'],['need_video','Video'],['recording_status','Recording Status'],['reporter_name','Reporter'],['certified_transcript_requested_at','Transcript Requested'],['transcript_due_date','Due Date'],['turnaround_type','Turnaround'],['bo_event_link','Event Link'],['bo_recording_link','Rec. Link']].map(([k,l]) => (
+                  {[['deposition_name','Deposition Name'],['deposition_status','Status'],['deposition_datetime','Event Time'],['event_state','State'],['organization_name','Organization'],['format','Format'],['need_reporter','Reporter Needed'],['need_steno','Steno'],['need_video','Video'],['recording_status','Recording Status'],['reporter_name','Reporter'],['certified_transcript_requested_at','Transcript Requested'],['transcript_due_date','Due Date'],['turnaround_type','Turnaround'],['bo_event_link','Event Link'],['bo_recording_link','Rec. Link'],['invoiceCreatedAt','Inv. Created'],['submissionDate','Sub. Date'],['onTime','On Time'],['invoicePaidAt','Inv. Paid']].map(([k,l]) => (
                     <th key={k} onClick={() => toggleSort(k)} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap cursor-pointer hover:text-gray-900 border-b select-none">
                       {l}<SortIcon k={k} />
                     </th>
@@ -209,6 +209,10 @@ export default function JobsTab({ jobs, setJobs, reporters, onLog }) {
                     <td className="px-3 py-2 whitespace-nowrap text-xs">{j.turnaround_type || '—'}</td>
                     <td className="px-3 py-2">{j.bo_event_link ? <a href={j.bo_event_link} target="_blank" rel="noreferrer" className="text-indigo-600 text-xs underline">Link</a> : '—'}</td>
                     <td className="px-3 py-2">{j.bo_recording_link ? <a href={j.bo_recording_link} target="_blank" rel="noreferrer" className="text-indigo-600 text-xs underline">Link</a> : '—'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs">{fmtDate(j.invoiceCreatedAt)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs">{j.submissionDate || '—'}</td>
+                    <td className="px-3 py-2">{j.onTime ? <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${j.onTime === 'yes' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{j.onTime === 'yes' ? 'Yes' : 'No'}</span> : <span className="text-gray-300 text-xs">—</span>}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs">{fmtDate(j.invoicePaidAt)}</td>
                   </tr>
                 ))}
               </tbody>
