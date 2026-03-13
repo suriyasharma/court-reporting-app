@@ -228,7 +228,7 @@ export default function AdminDash({
   }
 
   // ── Reporter management ────────────────────────────────────────────────────
-  const REPORTER_TEMPLATE_CSV = 'name,login_code,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee_full_day,appearance_fee_half_day,minimum_transcript_amount,minimum_transcript_copy_amount,video_surcharge,exhibit_surcharge,in_person_fee,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent\nJane Reporter,REP001,75.00,6.50,1.25,150.00,125.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10\nJohn Reporter,REP002,80.00,7.00,1.50,150.00,125.00,50.00,0.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10'
+  const REPORTER_TEMPLATE_CSV = 'name,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee_full_day,appearance_fee_half_day,minimum_transcript_amount,minimum_transcript_copy_amount,video_surcharge,exhibit_surcharge,in_person_fee,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent,expedite_1d_amount,expedite_2d_amount,expedite_3d_amount,expedite_4d_amount,expedite_5d_amount,expedite_6d_amount,expedite_7d_amount,expedite_8d_amount\nJane Reporter,75.00,6.50,1.25,150.00,125.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10,0,0,0,0,0,0,0,0\nJohn Reporter,80.00,7.00,1.50,150.00,125.00,50.00,0.00,0.00,0.00,0.00,0.00,0.00,0,0,0,0,0,0,0,0,1.50,1.20,0.90,0.65,0.50,0.35,0.20,0.10'
   const downloadReporterTemplate = () => {
     const blob = new Blob([REPORTER_TEMPLATE_CSV], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -256,12 +256,12 @@ export default function AdminDash({
         const obj = {}
         headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').replace(/^"|"$/g, '') })
         return obj
-      }).filter(r => r.name && r.login_code)
+      }).filter(r => r.name)
       let added = 0; let updated = 0
       const map = {}
       reporters.forEach(r => { map[r.code.toUpperCase()] = { ...r } })
       rows.forEach((r, rowIdx) => {
-        const code = r.login_code.trim().toUpperCase()
+        const code = r.name.trim().replace(/\s+/g, '').toUpperCase()
         if (!code) return
         const rateCard = {
           hourlyRate: Math.round(parseFloat(r.hourly_rate || 0) * 100),
@@ -276,12 +276,20 @@ export default function AdminDash({
           videoSurcharge: Math.round(parseFloat(r.video_surcharge || 0) * 100),
           exhibitSurcharge: Math.round(parseFloat(r.exhibit_surcharge || 0) * 100),
           inPersonFee: Math.round(parseFloat(r.in_person_fee || 0) * 100),
-          expediteRates: settings.expediteRates.map(exp => ({
-            ...exp,
-            percent: parseInt(r[`expedite_${exp.days}d_percent`]) >= 0 && r[`expedite_${exp.days}d_percent`] !== ''
-              ? parseInt(r[`expedite_${exp.days}d_percent`])
-              : exp.percent,
-          })),
+          expediteRates: settings.expediteRates.map(exp => {
+            const amtStr = r[`expedite_${exp.days}d_amount`]
+            const pctStr = r[`expedite_${exp.days}d_percent`]
+            const useAmount = amtStr !== undefined && amtStr !== '' && parseFloat(amtStr) > 0
+            if (useAmount) {
+              return { ...exp, useAmount: true, amount: Math.round(parseFloat(amtStr) * 100), percent: exp.percent }
+            }
+            return {
+              ...exp,
+              useAmount: false,
+              amount: exp.amount || 0,
+              percent: pctStr !== undefined && pctStr !== '' ? parseInt(pctStr) : exp.percent,
+            }
+          }),
         }
         if (map[code]) {
           map[code] = { ...map[code], displayName: r.name, code, rateCard, editedBy: user.displayName, editedAt: now() }
@@ -933,8 +941,11 @@ export default function AdminDash({
           <div className="bg-white rounded-xl p-6 w-full max-w-lg overflow-y-auto" style={{ maxHeight: '90vh' }}>
             <h3 className="text-lg font-bold mb-4">Add Reporter</h3>
             <div className="space-y-4">
-              <input type="text" value={newRep.displayName} onChange={e => setNewRep({ ...newRep, displayName: e.target.value })} placeholder="Name" className="w-full px-3 py-2 border rounded-lg" />
-              <input type="text" value={newRep.code} onChange={e => setNewRep({ ...newRep, code: e.target.value })} placeholder="Login Code" className="w-full px-3 py-2 border rounded-lg font-mono" />
+              <input type="text" value={newRep.displayName} onChange={e => setNewRep({ ...newRep, displayName: e.target.value, code: e.target.value.replace(/\s+/g, '') })} placeholder="Name" className="w-full px-3 py-2 border rounded-lg" />
+              <div className="w-full px-3 py-2 border rounded-lg bg-gray-50 font-mono text-sm flex items-center gap-2">
+                <span className="text-gray-400 text-xs shrink-0">Login code:</span>
+                <span className={newRep.code ? 'text-gray-700' : 'text-gray-300 italic'}>{newRep.code || 'auto-generated from name'}</span>
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 <div><p className="text-xs text-gray-500 mb-1">Hourly Rate ($)</p><input type="number" step="0.01" value={newRep.hourlyRate} onChange={e => setNewRep({ ...newRep, hourlyRate: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><p className="text-xs text-gray-500 mb-1">Original Page ($)</p><input type="number" step="0.01" value={newRep.originalPageRate} onChange={e => setNewRep({ ...newRep, originalPageRate: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
