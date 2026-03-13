@@ -31,9 +31,13 @@ export default function AdminEditInvModal({
   onSubmit, onClose,
 }) {
   const rep = reporters.find(r => r.id === inv.reporterUserId)
-  const rc = rep ? rep.rateCard : { hourlyRate: 0, originalPageRate: 0, copyPageRate: 0, lateCancelFee: 0, cnaFee: 0, appearanceFee: 0 }
+  const rc = rep ? rep.rateCard : { hourlyRate: 0, originalPageRate: 0, copyPageRate: 0, lateCancelFee: 0, cnaFee: 0 }
   const calc = calcInvoice(adminEditInvInput, rc, settings, adminEditInvType)
   const canSubmit = adminEditInvNumber.trim() && calc.totalCents > 0
+
+  const fullDayFee = rc.appearanceFeeFullDay || rc.appearanceFee || 0
+  const halfDayFee = rc.appearanceFeeHalfDay || 0
+  const eitherAppearanceFee = adminEditInvInput.useAppearanceFee || adminEditInvInput.useAppearanceFeeHalfDay
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -75,19 +79,27 @@ export default function AdminEditInvModal({
           </div>
 
           {adminEditInvType === 'STANDARD' && <>
-            <div className="p-3 bg-gray-50 rounded-lg border">
+            {/* Appearance fees */}
+            <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={!!adminEditInvInput.useAppearanceFee} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, useAppearanceFee: e.target.checked, hours: 0 })} className="w-4 h-4 rounded" />
-                <span className="text-sm font-medium">Use Appearance Fee</span>
-                {rc.appearanceFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.appearanceFee)}</span>}
+                <input type="checkbox" checked={!!adminEditInvInput.useAppearanceFee} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false, hours: 0 })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Full Day Appearance Fee</span>
+                {fullDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(fullDayFee)}</span>}
               </label>
-              {adminEditInvInput.useAppearanceFee && rc.appearanceFee > 0 && <p className="text-xs text-indigo-600 mt-2 ml-7">Appearance fee of {fmt(rc.appearanceFee)} will be applied instead of hourly rate.</p>}
-              {adminEditInvInput.useAppearanceFee && !rc.appearanceFee && <p className="text-xs text-red-500 mt-2 ml-7">No appearance fee set on this reporter's rate card.</p>}
+              {adminEditInvInput.useAppearanceFee && !fullDayFee && <p className="text-xs text-red-500 ml-7">No full day appearance fee set on this reporter's rate card.</p>}
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!adminEditInvInput.useAppearanceFeeHalfDay} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, useAppearanceFeeHalfDay: e.target.checked, useAppearanceFee: false, hours: 0 })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Half Day Appearance Fee</span>
+                {halfDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(halfDayFee)}</span>}
+              </label>
+              {adminEditInvInput.useAppearanceFeeHalfDay && !halfDayFee && <p className="text-xs text-red-500 ml-7">No half day appearance fee set on this reporter's rate card.</p>}
             </div>
+
+            {/* Hours / Pages */}
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-medium mb-1">Hours</label>
-                <input type="number" value={adminEditInvInput.hours || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, hours: parseInt(e.target.value) || 0 })} disabled={!!adminEditInvInput.useAppearanceFee} className={`w-full px-3 py-2 border rounded-lg text-sm ${adminEditInvInput.useAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
+                <input type="number" value={adminEditInvInput.hours || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, hours: parseInt(e.target.value) || 0 })} disabled={eitherAppearanceFee} className={`w-full px-3 py-2 border rounded-lg text-sm ${eitherAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
                 <p className="text-xs text-gray-400 mt-1">{fmt(rc.hourlyRate)}/hr</p>
               </div>
               <div>
@@ -101,6 +113,29 @@ export default function AdminEditInvModal({
                 <p className="text-xs text-gray-400 mt-1">{fmt(rc.copyPageRate)}/pg</p>
               </div>
             </div>
+
+            {/* Transcript / Copy / Video charges */}
+            <div className="p-3 bg-gray-50 rounded-lg border space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!adminEditInvInput.useMinTranscript} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, useMinTranscript: e.target.checked })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Minimum Transcript Amount</span>
+                {(rc.minimumTranscriptAmount || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.minimumTranscriptAmount)}</span>}
+              </label>
+              {adminEditInvInput.useMinTranscript && !(rc.minimumTranscriptAmount) && <p className="text-xs text-red-500 ml-7">No minimum transcript amount set on this reporter's rate card.</p>}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1">No. of Copies</label>
+                  <input type="number" value={adminEditInvInput.numCopies || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, numCopies: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <p className="text-xs text-gray-400 mt-1">{fmt(rc.minimumTranscriptCopyAmount || 0)}/copy</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Video Pages</label>
+                  <input type="number" value={adminEditInvInput.videoPages || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <p className="text-xs text-gray-400 mt-1">{fmt(rc.videoSurcharge || 0)}/pg surcharge</p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Expedite</label>
               <select value={adminEditInvInput.expediteDays} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, expediteDays: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg text-sm">

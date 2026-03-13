@@ -17,6 +17,8 @@ const emptyAdminInvInput = () => ({
   hours: 0, originalPages: 0, copyPages: 0, expediteDays: 0,
   additionalCharges: [], caseName: '', jobNumber: '', jobDate: '',
   rb9JobNumber: '', invoiceComment: '', useAppearanceFee: false,
+  useAppearanceFeeHalfDay: false, useMinTranscript: false,
+  numCopies: 0, videoPages: 0,
   jobId: '', submissionDate: '', onTime: '',
 })
 
@@ -38,7 +40,7 @@ export default function AdminDash({
   const [addRep, setAddRep] = useState(false)
   const [addAdm, setAddAdm] = useState(false)
   const [editRep, setEditRep] = useState(null)
-  const [newRep, setNewRep] = useState({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
+  const [newRep, setNewRep] = useState({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
   const [newAdm, setNewAdm] = useState({ displayName: '', code: '' })
   const [adminCreateInv, setAdminCreateInv] = useState(false)
   const [adminInvRepId, setAdminInvRepId] = useState('')
@@ -186,11 +188,15 @@ export default function AdminDash({
       caseName: inv.caseInfo?.caseName || '', jobNumber: inv.caseInfo?.jobNumber || '',
       jobDate: inv.caseInfo?.jobDate || '', rb9JobNumber: inv.caseInfo?.rb9JobNumber || '',
       invoiceComment: inv.invoiceComment || '', useAppearanceFee: false,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, numCopies: 0, videoPages: 0,
     }
     setAdminEditInv(inv)
     setAdminEditInvType(inv.invoiceType || 'STANDARD')
     setAdminEditInvNumber(inv.invoiceNumber || '')
-    setAdminEditInvInput({ ...savedInput, pdfLink: inv.pdfLink || '' })
+    setAdminEditInvInput({
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, numCopies: 0, videoPages: 0,
+      ...savedInput, pdfLink: inv.pdfLink || ''
+    })
   }
 
   const saveAdminEdit = () => {
@@ -218,7 +224,7 @@ export default function AdminDash({
   }
 
   // ── Reporter management ────────────────────────────────────────────────────
-  const REPORTER_TEMPLATE_CSV = 'name,login_code,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent\nJane Reporter,REP001,75.00,6.50,1.25,150.00,125.00,0.00,100,80,60,45,35,25,15,10\nJohn Reporter,REP002,80.00,7.00,1.50,150.00,125.00,50.00,100,80,60,45,35,25,15,10'
+  const REPORTER_TEMPLATE_CSV = 'name,login_code,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee_full_day,appearance_fee_half_day,minimum_transcript_amount,minimum_transcript_copy_amount,video_surcharge,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent\nJane Reporter,REP001,75.00,6.50,1.25,150.00,125.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10\nJohn Reporter,REP002,80.00,7.00,1.50,150.00,125.00,50.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10'
   const downloadReporterTemplate = () => {
     const blob = new Blob([REPORTER_TEMPLATE_CSV], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -259,7 +265,11 @@ export default function AdminDash({
           copyPageRate: Math.round(parseFloat(r.copy_page_rate || 0) * 100),
           lateCancelFee: Math.round(parseFloat(r.late_cancel_fee || 0) * 100) || settings.lateCancelFee,
           cnaFee: Math.round(parseFloat(r.cna_fee || 0) * 100) || settings.cnaFee,
-          appearanceFee: Math.round(parseFloat(r.appearance_fee || 0) * 100),
+          appearanceFeeFullDay: Math.round(parseFloat(r.appearance_fee_full_day || r.appearance_fee || 0) * 100),
+          appearanceFeeHalfDay: Math.round(parseFloat(r.appearance_fee_half_day || 0) * 100),
+          minimumTranscriptAmount: Math.round(parseFloat(r.minimum_transcript_amount || 0) * 100),
+          minimumTranscriptCopyAmount: Math.round(parseFloat(r.minimum_transcript_copy_amount || 0) * 100),
+          videoSurcharge: Math.round(parseFloat(r.video_surcharge || 0) * 100),
           expediteRates: settings.expediteRates.map(exp => ({
             ...exp,
             percent: parseInt(r[`expedite_${exp.days}d_percent`]) >= 0 && r[`expedite_${exp.days}d_percent`] !== ''
@@ -293,7 +303,11 @@ export default function AdminDash({
         copyPageRate: Math.round(parseFloat(newRep.copyPageRate) * 100),
         lateCancelFee: Math.round(parseFloat(newRep.lateCancelFee || 0) * 100) || settings.lateCancelFee,
         cnaFee: Math.round(parseFloat(newRep.cnaFee || 0) * 100) || settings.cnaFee,
-        appearanceFee: Math.round(parseFloat(newRep.appearanceFee || 0) * 100),
+        appearanceFeeFullDay: Math.round(parseFloat(newRep.appearanceFeeFullDay || 0) * 100),
+        appearanceFeeHalfDay: Math.round(parseFloat(newRep.appearanceFeeHalfDay || 0) * 100),
+        minimumTranscriptAmount: Math.round(parseFloat(newRep.minimumTranscriptAmount || 0) * 100),
+        minimumTranscriptCopyAmount: Math.round(parseFloat(newRep.minimumTranscriptCopyAmount || 0) * 100),
+        videoSurcharge: Math.round(parseFloat(newRep.videoSurcharge || 0) * 100),
         profileAdditionalFees: newRep.profileAdditionalFees || [],
         expediteRates: newRep.expediteRates,
       },
@@ -301,7 +315,7 @@ export default function AdminDash({
       createdAt: now(),
     }])
     log('Reporter Added', newRep.displayName)
-    setNewRep({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
+    setNewRep({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e })) })
     setAddRep(false)
   }
 
@@ -312,7 +326,11 @@ export default function AdminDash({
     copyPageRate: (r.rateCard.copyPageRate / 100).toFixed(2),
     lateCancelFee: ((r.rateCard.lateCancelFee || settings.lateCancelFee) / 100).toFixed(2),
     cnaFee: ((r.rateCard.cnaFee || settings.cnaFee) / 100).toFixed(2),
-    appearanceFee: ((r.rateCard.appearanceFee || 0) / 100).toFixed(2),
+    appearanceFeeFullDay: ((r.rateCard.appearanceFeeFullDay || r.rateCard.appearanceFee || 0) / 100).toFixed(2),
+    appearanceFeeHalfDay: ((r.rateCard.appearanceFeeHalfDay || 0) / 100).toFixed(2),
+    minimumTranscriptAmount: ((r.rateCard.minimumTranscriptAmount || 0) / 100).toFixed(2),
+    minimumTranscriptCopyAmount: ((r.rateCard.minimumTranscriptCopyAmount || 0) / 100).toFixed(2),
+    videoSurcharge: ((r.rateCard.videoSurcharge || 0) / 100).toFixed(2),
     profileAdditionalFees: r.rateCard.profileAdditionalFees || [],
     expediteRates: r.rateCard.expediteRates || settings.expediteRates.map(e => ({ ...e })),
   })
@@ -328,7 +346,11 @@ export default function AdminDash({
         copyPageRate: Math.round(parseFloat(editRep.copyPageRate) * 100),
         lateCancelFee: Math.round(parseFloat(editRep.lateCancelFee) * 100),
         cnaFee: Math.round(parseFloat(editRep.cnaFee) * 100),
-        appearanceFee: Math.round(parseFloat(editRep.appearanceFee || 0) * 100),
+        appearanceFeeFullDay: Math.round(parseFloat(editRep.appearanceFeeFullDay || 0) * 100),
+        appearanceFeeHalfDay: Math.round(parseFloat(editRep.appearanceFeeHalfDay || 0) * 100),
+        minimumTranscriptAmount: Math.round(parseFloat(editRep.minimumTranscriptAmount || 0) * 100),
+        minimumTranscriptCopyAmount: Math.round(parseFloat(editRep.minimumTranscriptCopyAmount || 0) * 100),
+        videoSurcharge: Math.round(parseFloat(editRep.videoSurcharge || 0) * 100),
         profileAdditionalFees: editRep.profileAdditionalFees || [],
         expediteRates: editRep.expediteRates,
       },
@@ -687,9 +709,13 @@ export default function AdminDash({
               <div className="bg-white rounded-xl shadow-sm border">
                 <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
                   <span className="font-semibold">Invoices</span>
-                  {reporters.length > 0 && (
-                    <button onClick={() => setAdminCreateInv(true)} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-1"><Plus className="w-4 h-4" />Create Invoice</button>
-                  )}
+                  <button
+                    onClick={() => reporters.length > 0 ? setAdminCreateInv(true) : alert('Add at least one reporter before creating an invoice.')}
+                    title={reporters.length === 0 ? 'Add a reporter first' : ''}
+                    className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-1 hover:bg-indigo-700"
+                  >
+                    <Plus className="w-4 h-4" />Create Invoice
+                  </button>
                 </div>
                 <div className="divide-y max-h-96 overflow-y-auto">
                   {displayed.length === 0
@@ -898,14 +924,22 @@ export default function AdminDash({
               <input type="text" value={newRep.displayName} onChange={e => setNewRep({ ...newRep, displayName: e.target.value })} placeholder="Name" className="w-full px-3 py-2 border rounded-lg" />
               <input type="text" value={newRep.code} onChange={e => setNewRep({ ...newRep, code: e.target.value })} placeholder="Login Code" className="w-full px-3 py-2 border rounded-lg font-mono" />
               <div className="grid grid-cols-3 gap-2">
-                <input type="number" step="0.01" value={newRep.hourlyRate} onChange={e => setNewRep({ ...newRep, hourlyRate: e.target.value })} placeholder="Hourly $" className="px-3 py-2 border rounded-lg" />
-                <input type="number" step="0.01" value={newRep.originalPageRate} onChange={e => setNewRep({ ...newRep, originalPageRate: e.target.value })} placeholder="Original $" className="px-3 py-2 border rounded-lg" />
-                <input type="number" step="0.01" value={newRep.copyPageRate} onChange={e => setNewRep({ ...newRep, copyPageRate: e.target.value })} placeholder="Copy $" className="px-3 py-2 border rounded-lg" />
+                <div><p className="text-xs text-gray-500 mb-1">Hourly Rate ($)</p><input type="number" step="0.01" value={newRep.hourlyRate} onChange={e => setNewRep({ ...newRep, hourlyRate: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">Original Page ($)</p><input type="number" step="0.01" value={newRep.originalPageRate} onChange={e => setNewRep({ ...newRep, originalPageRate: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">Copy Page ($)</p><input type="number" step="0.01" value={newRep.copyPageRate} onChange={e => setNewRep({ ...newRep, copyPageRate: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <input type="number" step="0.01" value={newRep.lateCancelFee} onChange={e => setNewRep({ ...newRep, lateCancelFee: e.target.value })} placeholder="Late Cancel $" className="px-3 py-2 border rounded-lg" />
-                <input type="number" step="0.01" value={newRep.cnaFee} onChange={e => setNewRep({ ...newRep, cnaFee: e.target.value })} placeholder="CNA $" className="px-3 py-2 border rounded-lg" />
-                <input type="number" step="0.01" value={newRep.appearanceFee} onChange={e => setNewRep({ ...newRep, appearanceFee: e.target.value })} placeholder="Appearance $" className="px-3 py-2 border rounded-lg" />
+                <div><p className="text-xs text-gray-500 mb-1">Late Cancel Fee ($)</p><input type="number" step="0.01" value={newRep.lateCancelFee} onChange={e => setNewRep({ ...newRep, lateCancelFee: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">CNA Fee ($)</p><input type="number" step="0.01" value={newRep.cnaFee} onChange={e => setNewRep({ ...newRep, cnaFee: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">Full Day Appearance ($)</p><input type="number" step="0.01" value={newRep.appearanceFeeFullDay} onChange={e => setNewRep({ ...newRep, appearanceFeeFullDay: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><p className="text-xs text-gray-500 mb-1">Half Day Appearance ($)</p><input type="number" step="0.01" value={newRep.appearanceFeeHalfDay} onChange={e => setNewRep({ ...newRep, appearanceFeeHalfDay: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">Min Transcript Amt ($)</p><input type="number" step="0.01" value={newRep.minimumTranscriptAmount} onChange={e => setNewRep({ ...newRep, minimumTranscriptAmount: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">Min Copy Amt ($)</p><input type="number" step="0.01" value={newRep.minimumTranscriptCopyAmount} onChange={e => setNewRep({ ...newRep, minimumTranscriptCopyAmount: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><p className="text-xs text-gray-500 mb-1">Video Surcharge ($)</p><input type="number" step="0.01" value={newRep.videoSurcharge} onChange={e => setNewRep({ ...newRep, videoSurcharge: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -960,7 +994,15 @@ export default function AdminDash({
               <div className="grid grid-cols-3 gap-2">
                 <div><label className="block text-sm font-medium mb-1">Late Cancel Fee ($)</label><input type="number" step="0.01" value={editRep.lateCancelFee} onChange={e => setEditRep({ ...editRep, lateCancelFee: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><label className="block text-sm font-medium mb-1">CNA Fee ($)</label><input type="number" step="0.01" value={editRep.cnaFee} onChange={e => setEditRep({ ...editRep, cnaFee: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-                <div><label className="block text-sm font-medium mb-1">Appearance Fee ($)</label><input type="number" step="0.01" value={editRep.appearanceFee} onChange={e => setEditRep({ ...editRep, appearanceFee: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><label className="block text-sm font-medium mb-1">Full Day Appearance ($)</label><input type="number" step="0.01" value={editRep.appearanceFeeFullDay} onChange={e => setEditRep({ ...editRep, appearanceFeeFullDay: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><label className="block text-sm font-medium mb-1">Half Day Appearance ($)</label><input type="number" step="0.01" value={editRep.appearanceFeeHalfDay} onChange={e => setEditRep({ ...editRep, appearanceFeeHalfDay: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><label className="block text-sm font-medium mb-1">Min Transcript Amt ($)</label><input type="number" step="0.01" value={editRep.minimumTranscriptAmount} onChange={e => setEditRep({ ...editRep, minimumTranscriptAmount: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><label className="block text-sm font-medium mb-1">Min Copy Amt ($)</label><input type="number" step="0.01" value={editRep.minimumTranscriptCopyAmount} onChange={e => setEditRep({ ...editRep, minimumTranscriptCopyAmount: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><label className="block text-sm font-medium mb-1">Video Surcharge ($)</label><input type="number" step="0.01" value={editRep.videoSurcharge} onChange={e => setEditRep({ ...editRep, videoSurcharge: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
               </div>
               <div>
                 <p className="text-sm font-medium mb-2">Expedite Rates</p>

@@ -28,6 +28,12 @@ CREATE TABLE IF NOT EXISTS reporters (
 );
 
 -- No reporter seeds — add real reporters through the Admin UI.
+-- rate_card JSONB shape (all monetary values in cents):
+--   hourlyRate, originalPageRate, copyPageRate,
+--   lateCancelFee, cnaFee,
+--   appearanceFeeFullDay, appearanceFeeHalfDay,
+--   minimumTranscriptAmount, minimumTranscriptCopyAmount, videoSurcharge,
+--   profileAdditionalFees (array), expediteRates (array)
 
 -- ── Invoices ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS invoices (

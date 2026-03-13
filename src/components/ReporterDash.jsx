@@ -10,6 +10,8 @@ const emptyInput = () => ({
   hours: 0, originalPages: 0, copyPages: 0, expediteDays: 0,
   additionalCharges: [], caseName: '', jobNumber: '', jobDate: '',
   rb9JobNumber: '', invoiceComment: '', useAppearanceFee: false,
+  useAppearanceFeeHalfDay: false, useMinTranscript: false,
+  numCopies: 0, videoPages: 0,
 })
 
 export default function ReporterDash({ user, invoices, setInvoices, settings, onLogout }) {
@@ -61,10 +63,14 @@ export default function ReporterDash({ user, invoices, setInvoices, settings, on
       caseName: inv.caseInfo?.caseName || '', jobNumber: inv.caseInfo?.jobNumber || '',
       jobDate: inv.caseInfo?.jobDate || '', rb9JobNumber: inv.caseInfo?.rb9JobNumber || '',
       invoiceComment: inv.invoiceComment || '', useAppearanceFee: false,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, numCopies: 0, videoPages: 0,
     }
     setEditingInv(inv)
     setEditInvType(inv.invoiceType || 'STANDARD')
-    setEditInput({ ...savedInput })
+    setEditInput({
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, numCopies: 0, videoPages: 0,
+      ...savedInput,
+    })
     setEditInvoiceNumber(inv.invoiceNumber || '')
     setEditPdfLink(inv.pdfLink || '')
     setView('edit')

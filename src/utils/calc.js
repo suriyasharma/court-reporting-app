@@ -16,10 +16,17 @@ export function calcInvoice(input, rc, settings, invoiceType) {
     return { lineItems: items, totalCents: cnaFee }
   }
 
+  // Appearance fees — full day and half day are mutually exclusive; both disable hours
   if (input.useAppearanceFee) {
-    const a = rc.appearanceFee || 0
+    const a = rc.appearanceFeeFullDay || rc.appearanceFee || 0 // backward compat
     if (a > 0) {
-      items.push({ description: 'Appearance Fee', qty: 1, unitCents: a, amountCents: a })
+      items.push({ description: 'Full Day Appearance Fee', qty: 1, unitCents: a, amountCents: a })
+      sub += a
+    }
+  } else if (input.useAppearanceFeeHalfDay) {
+    const a = rc.appearanceFeeHalfDay || 0
+    if (a > 0) {
+      items.push({ description: 'Half Day Appearance Fee', qty: 1, unitCents: a, amountCents: a })
       sub += a
     }
   } else if (input.hours) {
@@ -37,6 +44,35 @@ export function calcInvoice(input, rc, settings, invoiceType) {
     const a = input.copyPages * rc.copyPageRate
     items.push({ description: 'Copy Pages', qty: input.copyPages, unitCents: rc.copyPageRate, amountCents: a })
     sub += a
+  }
+
+  // Minimum transcript amount — flat fee checkbox
+  if (input.useMinTranscript) {
+    const a = rc.minimumTranscriptAmount || 0
+    if (a > 0) {
+      items.push({ description: 'Minimum Transcript Amount', qty: 1, unitCents: a, amountCents: a })
+      sub += a
+    }
+  }
+
+  // Number of copies × minimum transcript copy amount
+  if (input.numCopies) {
+    const rate = rc.minimumTranscriptCopyAmount || 0
+    const a = input.numCopies * rate
+    if (a > 0) {
+      items.push({ description: 'Transcript Copies', qty: input.numCopies, unitCents: rate, amountCents: a })
+      sub += a
+    }
+  }
+
+  // Video surcharge — pages × per-page video rate
+  if (input.videoPages) {
+    const rate = rc.videoSurcharge || 0
+    const a = input.videoPages * rate
+    if (a > 0) {
+      items.push({ description: 'Video Surcharge', qty: input.videoPages, unitCents: rate, amountCents: a })
+      sub += a
+    }
   }
 
   if (input.expediteDays) {

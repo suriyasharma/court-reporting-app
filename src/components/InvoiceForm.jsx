@@ -9,6 +9,10 @@ export default function InvoiceForm({
   const addCharge = () => setInput({ ...input, additionalCharges: [...input.additionalCharges, { description: '', amount: 0, displayAmount: '' }] })
   const removeCharge = idx => setInput({ ...input, additionalCharges: input.additionalCharges.filter((_, i) => i !== idx) })
 
+  const fullDayFee = rc.appearanceFeeFullDay || rc.appearanceFee || 0
+  const halfDayFee = rc.appearanceFeeHalfDay || 0
+  const eitherAppearanceFee = input.useAppearanceFee || input.useAppearanceFeeHalfDay
+
   return (
     <div className="max-w-xl mx-auto pb-16">
       <button onClick={onBack} className="text-gray-600 mb-4 block">&#8592; Back</button>
@@ -48,19 +52,27 @@ export default function InvoiceForm({
           </div>
 
           {invType === 'STANDARD' && <>
-            <div className="p-3 bg-gray-50 rounded-lg border">
+            {/* Appearance fees */}
+            <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={!!input.useAppearanceFee} onChange={e => setInput({ ...input, useAppearanceFee: e.target.checked, hours: 0 })} className="w-4 h-4 rounded" />
-                <span className="text-sm font-medium">Use Appearance Fee</span>
-                {rc.appearanceFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.appearanceFee)}</span>}
+                <input type="checkbox" checked={!!input.useAppearanceFee} onChange={e => setInput({ ...input, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false, hours: 0 })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Full Day Appearance Fee</span>
+                {fullDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(fullDayFee)}</span>}
               </label>
-              {input.useAppearanceFee && rc.appearanceFee > 0 && <p className="text-xs text-indigo-600 mt-2 ml-7">Appearance fee of {fmt(rc.appearanceFee)} will be applied instead of hourly rate.</p>}
-              {input.useAppearanceFee && !rc.appearanceFee && <p className="text-xs text-red-500 mt-2 ml-7">No appearance fee set on this reporter's rate card.</p>}
+              {input.useAppearanceFee && !fullDayFee && <p className="text-xs text-red-500 ml-7">No full day appearance fee set on your rate card.</p>}
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!input.useAppearanceFeeHalfDay} onChange={e => setInput({ ...input, useAppearanceFeeHalfDay: e.target.checked, useAppearanceFee: false, hours: 0 })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Half Day Appearance Fee</span>
+                {halfDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(halfDayFee)}</span>}
+              </label>
+              {input.useAppearanceFeeHalfDay && !halfDayFee && <p className="text-xs text-red-500 ml-7">No half day appearance fee set on your rate card.</p>}
             </div>
+
+            {/* Hours / Pages */}
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Hours</label>
-                <input type="number" value={input.hours || ''} onChange={e => setInput({ ...input, hours: parseInt(e.target.value) || 0 })} disabled={!!input.useAppearanceFee} className={`w-full px-3 py-2 border rounded-lg ${input.useAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
+                <input type="number" value={input.hours || ''} onChange={e => setInput({ ...input, hours: parseInt(e.target.value) || 0 })} disabled={eitherAppearanceFee} className={`w-full px-3 py-2 border rounded-lg ${eitherAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
                 <p className="text-xs text-gray-500 mt-1">{fmt(rc.hourlyRate)}/hr</p>
               </div>
               <div>
@@ -74,6 +86,29 @@ export default function InvoiceForm({
                 <p className="text-xs text-gray-500 mt-1">{fmt(rc.copyPageRate)}/pg</p>
               </div>
             </div>
+
+            {/* Minimum transcript / copies / video surcharge */}
+            <div className="p-3 bg-gray-50 rounded-lg border space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!input.useMinTranscript} onChange={e => setInput({ ...input, useMinTranscript: e.target.checked })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Minimum Transcript Amount</span>
+                {(rc.minimumTranscriptAmount || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.minimumTranscriptAmount)}</span>}
+              </label>
+              {input.useMinTranscript && !(rc.minimumTranscriptAmount) && <p className="text-xs text-red-500 ml-7">No minimum transcript amount set on your rate card.</p>}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">No. of Copies</label>
+                  <input type="number" value={input.numCopies || ''} onChange={e => setInput({ ...input, numCopies: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                  <p className="text-xs text-gray-500 mt-1">{fmt(rc.minimumTranscriptCopyAmount || 0)}/copy</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Video Pages</label>
+                  <input type="number" value={input.videoPages || ''} onChange={e => setInput({ ...input, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                  <p className="text-xs text-gray-500 mt-1">{fmt(rc.videoSurcharge || 0)}/pg surcharge</p>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Expedite</label>
               <select value={input.expediteDays} onChange={e => setInput({ ...input, expediteDays: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg">
