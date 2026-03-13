@@ -100,6 +100,8 @@ export default function App() {
       user={user}
       invoices={invoices}
       setInvoices={setInvoices}
+      jobs={jobs}
+      setJobs={setJobs}
       settings={settings}
       onLogout={() => setUser(null)}
     />

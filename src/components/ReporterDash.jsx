@@ -14,7 +14,7 @@ const emptyInput = () => ({
   numCopies: 0, videoPages: 0, exhibitPages: 0, expeditePages: 0,
 })
 
-export default function ReporterDash({ user, invoices, setInvoices, settings, onLogout }) {
+export default function ReporterDash({ user, invoices, setInvoices, jobs, setJobs, settings, onLogout }) {
   const [view, setView] = useState('list')
   const [sel, setSel] = useState(null)
   const [invType, setInvType] = useState('STANDARD')
@@ -52,10 +52,18 @@ export default function ReporterDash({ user, invoices, setInvoices, settings, on
     setInput(emptyInput())
   }
 
-  const submit = inv => setInvoices(invoices.map(i => i.id === inv.id
-    ? { ...i, status: 'SUBMITTED', submittedAt: now(), auditLog: [...(i.auditLog || []), { action: 'Submitted', by: user.displayName, at: now() }] }
-    : i
-  ))
+  const submit = inv => {
+    setInvoices(invoices.map(i => i.id === inv.id
+      ? { ...i, status: 'SUBMITTED', submittedAt: now(), auditLog: [...(i.auditLog || []), { action: 'Submitted', by: user.displayName, at: now() }] }
+      : i
+    ))
+    if (inv.jobId && jobs && setJobs) {
+      setJobs(jobs.map(j => j.deposition_id === inv.jobId
+        ? { ...j, submissionDate: inv.submissionDate || '', onTime: inv.onTime || '' }
+        : j
+      ))
+    }
+  }
 
   const openEdit = inv => {
     const savedInput = inv.input || {

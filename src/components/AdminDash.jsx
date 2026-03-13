@@ -117,7 +117,11 @@ export default function AdminDash({
   const pay = () => {
     if (payConfirm !== payModal.invoiceNumber) return
     const pid = 'po_' + Math.random().toString(36).substr(2, 8)
-    setInvoices(invoices.map(i => i.id === payModal.id ? { ...i, status: 'PAID', paidAt: now(), paidBy: user.displayName, stripePayoutId: pid, auditLog: [...(i.auditLog || []), { action: 'Paid', by: user.displayName, at: now() }] } : i))
+    const paidTs = now()
+    setInvoices(invoices.map(i => i.id === payModal.id ? { ...i, status: 'PAID', paidAt: paidTs, paidBy: user.displayName, stripePayoutId: pid, auditLog: [...(i.auditLog || []), { action: 'Paid', by: user.displayName, at: paidTs }] } : i))
+    if (payModal.jobId) {
+      setJobs(prev => prev.map(j => j.deposition_id === payModal.jobId ? { ...j, invoicePaidAt: paidTs } : j))
+    }
     log('Invoice Paid', payModal.invoiceNumber)
     setPayModal(null); setPayConfirm('')
   }
@@ -173,7 +177,7 @@ export default function AdminDash({
     }
     setInvoices([...invoices, newInv])
     if (adminInvInput.jobId) {
-      setJobs(prev => prev.map(j => j.deposition_id === adminInvInput.jobId ? { ...j, reporter_name: rep.displayName } : j))
+      setJobs(prev => prev.map(j => j.deposition_id === adminInvInput.jobId ? { ...j, reporter_name: rep.displayName, invoiceCreatedAt: now(), submissionDate: adminInvInput.submissionDate || '', onTime: adminInvInput.onTime || '' } : j))
     }
     log('Invoice Created (Admin)', invNum)
     setAdminCreateInv(false)
@@ -529,7 +533,7 @@ export default function AdminDash({
             const s = String(v)
             return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
           }
-          const JOB_COLS = ['deposition_id','deposition_name','deposition_status','deposition_datetime','event_state','organization_name','format','need_reporter','need_steno','need_video','recording_status','certified_transcript_requested_at','transcript_due_date','turnaround_type','reporter_name']
+          const JOB_COLS = ['deposition_id','deposition_name','deposition_status','deposition_datetime','event_state','organization_name','format','need_reporter','need_steno','need_video','recording_status','certified_transcript_requested_at','transcript_due_date','turnaround_type','reporter_name','invoiceCreatedAt','submissionDate','onTime','invoicePaidAt']
           const INV_COLS = ['invoiceNumber','invoiceType','status','totalCents','submittedAt','approvedAt','approvedBy','paidAt','paidBy','submissionDate','onTime','pdfLink']
           const ALL_HEADERS = [...JOB_COLS, ...INV_COLS.map(c => `invoice_${c}`)]
           const buildCSV = () => {
