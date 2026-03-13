@@ -93,44 +93,63 @@ export default function InvoiceForm({
               </div>
             </div>
 
-            {/* Minimum transcript / copies / video surcharge */}
+            {/* Video / Exhibit surcharges */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Video Pages</label>
+                <input type="number" value={input.videoPages || ''} onChange={e => setInput({ ...input, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                <p className="text-xs text-gray-500 mt-1">{fmt(rc.videoSurcharge || 0)}/pg surcharge</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Exhibit Pages</label>
+                <input type="number" value={input.exhibitPages || ''} onChange={e => setInput({ ...input, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                <p className="text-xs text-gray-500 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
+              </div>
+            </div>
+
+            {/* Minimum transcript + copies */}
             <div className="p-3 bg-gray-50 rounded-lg border space-y-3">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={!!input.useMinTranscript} onChange={e => setInput({ ...input, useMinTranscript: e.target.checked })} className="w-4 h-4 rounded" />
+                <input type="checkbox" checked={!!input.useMinTranscript} onChange={e => setInput({ ...input, useMinTranscript: e.target.checked, numCopies: e.target.checked ? input.numCopies : 0 })} className="w-4 h-4 rounded" />
                 <span className="text-sm font-medium">Minimum Transcript Amount</span>
                 {(rc.minimumTranscriptAmount || 0) > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(rc.minimumTranscriptAmount)}</span>}
               </label>
               {input.useMinTranscript && !(rc.minimumTranscriptAmount) && <p className="text-xs text-red-500 ml-7">No minimum transcript amount set on your rate card.</p>}
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">No. of Copies</label>
-                  <input type="number" value={input.numCopies || ''} onChange={e => setInput({ ...input, numCopies: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
-                  <p className="text-xs text-gray-500 mt-1">{fmt(rc.minimumTranscriptCopyAmount || 0)}/copy</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Video Pages</label>
-                  <input type="number" value={input.videoPages || ''} onChange={e => setInput({ ...input, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
-                  <p className="text-xs text-gray-500 mt-1">{fmt(rc.videoSurcharge || 0)}/pg surcharge</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Exhibit Pages</label>
-                  <input type="number" value={input.exhibitPages || ''} onChange={e => setInput({ ...input, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
-                  <p className="text-xs text-gray-500 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">No. of Copies</label>
+                <input type="number" value={input.numCopies || ''} onChange={e => setInput({ ...input, numCopies: parseInt(e.target.value) || 0 })} disabled={!input.useMinTranscript} className={`w-full px-3 py-2 border rounded-lg ${!input.useMinTranscript ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
+                <p className="text-xs text-gray-500 mt-1">{fmt(rc.minimumTranscriptCopyAmount || 0)}/copy — only applies with Minimum Transcript Amount</p>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Expedite</label>
-              <select value={input.expediteDays} onChange={e => setInput({ ...input, expediteDays: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg">
-                <option value={0}>Standard (No Expedite)</option>
-                {(rc.expediteRates?.length ? rc.expediteRates : settings.expediteRates).map(e => (
-                  <option key={e.days} value={e.days}>
-                    {e.label} {e.useAmount && e.amount > 0 ? `(+${fmt(e.amount)}/pg)` : `(+${e.percent}%)`}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Expedite */}
+            {(() => {
+              const expRatesUi = rc.expediteRates?.length ? rc.expediteRates : settings.expediteRates
+              const selExp = expRatesUi.find(e => e.days === input.expediteDays)
+              const showExpPages = !!(selExp?.useAmount && selExp?.amount > 0 && !input.originalPages)
+              return (
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Expedite</label>
+                    <select value={input.expediteDays} onChange={e => setInput({ ...input, expediteDays: parseInt(e.target.value), expeditePages: 0 })} className="w-full px-3 py-2 border rounded-lg">
+                      <option value={0}>Standard (No Expedite)</option>
+                      {expRatesUi.map(e => (
+                        <option key={e.days} value={e.days}>
+                          {e.label} {e.useAmount && e.amount > 0 ? `(+${fmt(e.amount)}/pg)` : `(+${e.percent}%)`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {showExpPages && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Pages for Expedite</label>
+                      <input type="number" value={input.expeditePages || ''} onChange={e => setInput({ ...input, expeditePages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                      <p className="text-xs text-amber-600 mt-1">No original page count entered — enter pages here for the expedite fee calculation.</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium">Additional Charges</label>

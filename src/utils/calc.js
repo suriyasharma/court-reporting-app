@@ -100,8 +100,8 @@ export function calcInvoice(input, rc, settings, invoiceType) {
       let a
       let desc
       if (exp.useAmount && exp.amount > 0) {
-        // $ mode = per-page rate × original pages
-        const pages = input.originalPages || 0
+        // $ mode = per-page rate × original pages (or explicit expeditePages if no original pages entered)
+        const pages = input.expeditePages || input.originalPages || 0
         a = exp.amount * pages
         desc = `Expedite (${exp.days}d - ${fmt(exp.amount)}/pg)`
         items.push({ description: desc, qty: pages, unitCents: exp.amount, amountCents: a })

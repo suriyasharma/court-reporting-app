@@ -18,7 +18,7 @@ const emptyAdminInvInput = () => ({
   additionalCharges: [], caseName: '', jobNumber: '', jobDate: '',
   rb9JobNumber: '', invoiceComment: '', useAppearanceFee: false,
   useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false,
-  numCopies: 0, videoPages: 0, exhibitPages: 0,
+  numCopies: 0, videoPages: 0, exhibitPages: 0, expeditePages: 0,
   jobId: '', submissionDate: '', onTime: '',
 })
 
@@ -188,13 +188,13 @@ export default function AdminDash({
       caseName: inv.caseInfo?.caseName || '', jobNumber: inv.caseInfo?.jobNumber || '',
       jobDate: inv.caseInfo?.jobDate || '', rb9JobNumber: inv.caseInfo?.rb9JobNumber || '',
       invoiceComment: inv.invoiceComment || '', useAppearanceFee: false,
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, expeditePages: 0,
     }
     setAdminEditInv(inv)
     setAdminEditInvType(inv.invoiceType || 'STANDARD')
     setAdminEditInvNumber(inv.invoiceNumber || '')
     setAdminEditInvInput({
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, expeditePages: 0,
       ...savedInput, pdfLink: inv.pdfLink || ''
     })
   }
