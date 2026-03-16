@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(ls -la /Users/suriyasharma/court-reporting-app/.env* /Users/suriyasharma/court-reporting-app/nano.env)"
     ]
   }
 }

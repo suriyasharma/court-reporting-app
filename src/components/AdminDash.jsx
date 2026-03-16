@@ -109,6 +109,12 @@ export default function AdminDash({
     setInvoices(invoices.map(i => i.id === inv.id ? updated : i))
     log('Invoice Approved', inv.invoiceNumber)
   }
+  const unapprove = inv => {
+    const updated = { ...inv, status: 'SUBMITTED', approvedAt: null, approvedBy: null, auditLog: [...(inv.auditLog || []), { action: 'Approval reversed', by: user.displayName, at: now() }] }
+    setInvoices(invoices.map(i => i.id === inv.id ? updated : i))
+    log('Invoice Unapproved', inv.invoiceNumber)
+    setSel(s => s?.id === inv.id ? updated : s)
+  }
   const returnInv = () => {
     setInvoices(invoices.map(i => i.id === retModal.id ? { ...i, status: 'RETURNED', returnComment: retComment, auditLog: [...(i.auditLog || []), { action: 'Returned', by: user.displayName, at: now() }] } : i))
     log('Invoice Returned', retModal.invoiceNumber)
@@ -729,13 +735,15 @@ export default function AdminDash({
               <div className="bg-white rounded-xl shadow-sm border">
                 <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
                   <span className="font-semibold">Invoices</span>
-                  <button
-                    onClick={() => reporters.length > 0 ? setAdminCreateInv(true) : alert('Add at least one reporter before creating an invoice.')}
-                    title={reporters.length === 0 ? 'Add a reporter first' : ''}
-                    className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-1 hover:bg-indigo-700"
-                  >
-                    <Plus className="w-4 h-4" />Create Invoice
-                  </button>
+                  {tab === 'pending' && (
+                    <button
+                      onClick={() => reporters.length > 0 ? setAdminCreateInv(true) : alert('Add at least one reporter before creating an invoice.')}
+                      title={reporters.length === 0 ? 'Add a reporter first' : ''}
+                      className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center gap-1 hover:bg-indigo-700"
+                    >
+                      <Plus className="w-4 h-4" />Create Invoice
+                    </button>
+                  )}
                 </div>
                 <div className="divide-y max-h-96 overflow-y-auto">
                   {displayed.length === 0
@@ -870,9 +878,10 @@ export default function AdminDash({
                         <button onClick={() => approve(sel)} disabled={!sel.pdfLink} title={!sel.pdfLink ? 'PDF link required to approve' : ''} className="px-3 py-2 bg-green-600 text-white rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"><Check className="w-4 h-4" />Approve</button>
                         <button onClick={() => openAdminEdit(sel)} className="px-3 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-1"><Pencil className="w-4 h-4" />Edit</button>
                       </>}
-                      {sel.status === 'APPROVED' && (
+                      {sel.status === 'APPROVED' && <>
+                        <button onClick={() => unapprove(sel)} className="px-3 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-1"><RotateCcw className="w-4 h-4" />Unapprove</button>
                         <button onClick={() => setPayModal(sel)} className="px-3 py-2 bg-purple-600 text-white rounded-lg flex items-center gap-1"><DollarSign className="w-4 h-4" />Pay</button>
-                      )}
+                      </>}
                       {sel.status === 'PAID' && !sel.disputedAt && (
                         <button onClick={() => disputeInv(sel)} className="px-3 py-2 bg-red-600 text-white rounded-lg flex items-center gap-1"><AlertTriangle className="w-4 h-4" />Dispute</button>
                       )}
