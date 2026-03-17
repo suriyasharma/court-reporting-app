@@ -9,11 +9,29 @@ export function calcInvoice(input, rc, settings, invoiceType) {
 
   if (invoiceType === 'LATE_CANCEL') {
     items.push({ description: 'Late Cancellation Fee', qty: 1, unitCents: lateFee, amountCents: lateFee })
-    return { lineItems: items, totalCents: lateFee }
+    sub += lateFee
+    if (input.additionalCharges?.length) {
+      for (const ac of input.additionalCharges) {
+        if (ac.description && ac.amount > 0) {
+          items.push({ description: ac.description, qty: 1, unitCents: ac.amount, amountCents: ac.amount })
+          sub += ac.amount
+        }
+      }
+    }
+    return { lineItems: items, totalCents: sub }
   }
   if (invoiceType === 'CNA') {
     items.push({ description: 'Certificate of Non-Appearance', qty: 1, unitCents: cnaFee, amountCents: cnaFee })
-    return { lineItems: items, totalCents: cnaFee }
+    sub += cnaFee
+    if (input.additionalCharges?.length) {
+      for (const ac of input.additionalCharges) {
+        if (ac.description && ac.amount > 0) {
+          items.push({ description: ac.description, qty: 1, unitCents: ac.amount, amountCents: ac.amount })
+          sub += ac.amount
+        }
+      }
+    }
+    return { lineItems: items, totalCents: sub }
   }
 
   // In-person fee — flat fee checkbox
