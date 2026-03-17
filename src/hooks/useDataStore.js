@@ -211,12 +211,15 @@ export function useSupabaseCollection(table, defaultValue, options = {}) {
       .map((item) => item[pkField])
 
     if (upserts.length > 0) {
-      supabase
-        .from(table)
-        .upsert(upserts)
-        .then(({ error }) => {
-          if (error) console.error(`[useDataStore] Upsert error on "${table}":`, error.message)
-        })
+      const BATCH = 500
+      for (let i = 0; i < upserts.length; i += BATCH) {
+        supabase
+          .from(table)
+          .upsert(upserts.slice(i, i + BATCH))
+          .then(({ error }) => {
+            if (error) console.error(`[useDataStore] Upsert error on "${table}":`, error.message)
+          })
+      }
     }
 
     for (const pk of deletions) {
