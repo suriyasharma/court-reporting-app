@@ -153,16 +153,28 @@ export function useSupabaseCollection(table, defaultValue, options = {}) {
       setLoaded(true)
       return
     }
-    supabase.from(table).select('*').then(({ data, error }) => {
-      if (error) {
-        console.error(`[useDataStore] Error loading "${table}":`, error.message)
-      } else if (data && data.length > 0) {
-        const transformed = fromDb ? data.map(fromDb) : data
+    const fetchAll = async () => {
+      const PAGE = 1000
+      let all = []
+      let from = 0
+      while (true) {
+        const { data, error } = await supabase.from(table).select('*').range(from, from + PAGE - 1)
+        if (error) {
+          console.error(`[useDataStore] Error loading "${table}":`, error.message)
+          break
+        }
+        if (data && data.length > 0) all = all.concat(data)
+        if (!data || data.length < PAGE) break
+        from += PAGE
+      }
+      if (all.length > 0) {
+        const transformed = fromDb ? all.map(fromDb) : all
         setState(transformed)
         stateRef.current = transformed
       }
       setLoaded(true)
-    })
+    }
+    fetchAll()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
