@@ -26,6 +26,8 @@ export default function ReporterDash({ user, invoices, setInvoices, jobs, setJob
   const [editInvoiceNumber, setEditInvoiceNumber] = useState('')
   const [pdfLink, setPdfLink] = useState('')
   const [editPdfLink, setEditPdfLink] = useState('')
+  const [boLink, setBoLink] = useState(false)
+  const [editBoLink, setEditBoLink] = useState(false)
 
   const rc = user.rateCard
   const my = invoices.filter(i => i.reporterUserId === user.id)
@@ -42,13 +44,14 @@ export default function ReporterDash({ user, invoices, setInvoices, jobs, setJob
       invoiceType: invType,
       input,
       pdfLink: pdfLink.trim(),
+      boLink: !!boLink,
       caseInfo: { caseName: input.caseName, jobNumber: input.jobNumber, jobDate: input.jobDate, rb9JobNumber: input.rb9JobNumber || '' },
       invoiceComment: input.invoiceComment || '',
       lineItems: calc.lineItems,
       totalCents: calc.totalCents,
       auditLog: [{ action: 'Created', by: user.displayName, at: now() }],
     }])
-    setView('list'); setInvType('STANDARD'); setInvoiceNumber(''); setPdfLink('')
+    setView('list'); setInvType('STANDARD'); setInvoiceNumber(''); setPdfLink(''); setBoLink(false)
     setInput(emptyInput())
   }
 
@@ -81,6 +84,7 @@ export default function ReporterDash({ user, invoices, setInvoices, jobs, setJob
     })
     setEditInvoiceNumber(inv.invoiceNumber || '')
     setEditPdfLink(inv.pdfLink || '')
+    setEditBoLink(!!inv.boLink)
     setView('edit')
   }
 
@@ -89,6 +93,7 @@ export default function ReporterDash({ user, invoices, setInvoices, jobs, setJob
       ...editingInv,
       invoiceNumber: editInvoiceNumber.trim() || editingInv.invoiceNumber,
       pdfLink: editPdfLink.trim(),
+      boLink: !!editBoLink,
       invoiceType: editInvType,
       input: editInput,
       caseInfo: { caseName: editInput.caseName, jobNumber: editInput.jobNumber, jobDate: editInput.jobDate, rb9JobNumber: editInput.rb9JobNumber || '' },
@@ -183,6 +188,7 @@ export default function ReporterDash({ user, invoices, setInvoices, jobs, setJob
             title="Create Invoice"
             invoiceNumber={invoiceNumber} setInvoiceNumber={setInvoiceNumber}
             pdfLink={pdfLink} setPdfLink={setPdfLink}
+            boLink={boLink} setBoLink={setBoLink}
             input={input} setInput={setInput}
             invType={invType} setInvType={setInvType}
             rc={rc} settings={settings} calc={calc}
@@ -198,6 +204,7 @@ export default function ReporterDash({ user, invoices, setInvoices, jobs, setJob
             title={`Edit Invoice — ${editingInv.invoiceNumber}`}
             invoiceNumber={editInvoiceNumber} setInvoiceNumber={setEditInvoiceNumber}
             pdfLink={editPdfLink} setPdfLink={setEditPdfLink}
+            boLink={editBoLink} setBoLink={setEditBoLink}
             input={editInput} setInput={setEditInput}
             invType={editInvType} setInvType={setEditInvType}
             rc={rc} settings={settings} calc={editCalc}

@@ -19,7 +19,7 @@ const emptyAdminInvInput = () => ({
   rb9JobNumber: '', invoiceComment: '', useAppearanceFee: false,
   useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false,
   numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0,
-  jobId: '', submissionDate: '', onTime: '',
+  jobId: '', submissionDate: '', onTime: '', boLink: false,
 })
 
 export default function AdminDash({
@@ -171,6 +171,7 @@ export default function AdminDash({
       invoiceType: adminInvType,
       input: adminInvInput,
       pdfLink: (adminInvInput.pdfLink || '').trim(),
+      boLink: !!adminInvInput.boLink,
       jobId: adminInvInput.jobId || '',
       submissionDate: adminInvInput.submissionDate || '',
       onTime: adminInvInput.onTime || '',
@@ -198,13 +199,13 @@ export default function AdminDash({
       caseName: inv.caseInfo?.caseName || '', jobNumber: inv.caseInfo?.jobNumber || '',
       jobDate: inv.caseInfo?.jobDate || '', rb9JobNumber: inv.caseInfo?.rb9JobNumber || '',
       invoiceComment: inv.invoiceComment || '', useAppearanceFee: false,
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0, boLink: false,
     }
     setAdminEditInv(inv)
     setAdminEditInvType(inv.invoiceType || 'STANDARD')
     setAdminEditInvNumber(inv.invoiceNumber || '')
     setAdminEditInvInput({
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0, boLink: false,
       ...savedInput, pdfLink: inv.pdfLink || ''
     })
   }
@@ -217,6 +218,7 @@ export default function AdminDash({
       ...adminEditInv,
       invoiceNumber: adminEditInvNumber.trim() || adminEditInv.invoiceNumber,
       pdfLink: (adminEditInvInput.pdfLink || '').trim() || adminEditInv.pdfLink || '',
+      boLink: adminEditInvInput.boLink !== undefined ? !!adminEditInvInput.boLink : !!adminEditInv.boLink,
       invoiceType: adminEditInvType,
       input: adminEditInvInput,
       caseInfo: { caseName: adminEditInvInput.caseName, jobNumber: adminEditInvInput.jobNumber, jobDate: adminEditInvInput.jobDate, rb9JobNumber: adminEditInvInput.rb9JobNumber || '' },
@@ -793,6 +795,16 @@ export default function AdminDash({
                     {sel.approvedBy && <p className="text-xs text-green-600 mb-1">Approved by {sel.approvedBy} on {sel.approvedAt}</p>}
                     {sel.paidBy && <p className="text-xs text-purple-600 mb-1">Paid by {sel.paidBy} on {sel.paidAt}</p>}
 
+                    {/* BO Link */}
+                    <div className="my-3 p-3 bg-gray-50 rounded-lg border">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" checked={!!sel.boLink} onChange={e => { const updated = { ...sel, boLink: e.target.checked }; setInvoices(invoices.map(i => i.id === sel.id ? updated : i)); setSel(updated) }} className="w-4 h-4 rounded" />
+                        <span className="text-xs font-semibold text-gray-600">BO Link</span>
+                        {!sel.boLink && (sel.status === 'SUBMITTED' || sel.status === 'RETURNED') && <span className="text-red-500 text-xs ml-auto">* Required to approve</span>}
+                        {sel.boLink && <span className="text-green-600 text-xs ml-auto">✓ Confirmed</span>}
+                      </label>
+                    </div>
+
                     {/* PDF Link */}
                     <div className="my-3 p-3 bg-gray-50 rounded-lg border">
                       <p className="text-xs font-semibold text-gray-600 mb-2">
@@ -875,11 +887,11 @@ export default function AdminDash({
                     <div className="flex gap-2 flex-wrap">
                       <button onClick={() => genPDF(sel, sel.reporterName)} className="px-3 py-2 bg-gray-600 text-white rounded-lg flex items-center gap-1"><Download className="w-4 h-4" />PDF</button>
                       {sel.status === 'SUBMITTED' && <>
-                        <button onClick={() => approve(sel)} disabled={!sel.pdfLink} title={!sel.pdfLink ? 'PDF link required to approve' : ''} className="px-3 py-2 bg-green-600 text-white rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"><Check className="w-4 h-4" />Approve</button>
+                        <button onClick={() => approve(sel)} disabled={!sel.pdfLink || !sel.boLink} title={!sel.pdfLink ? 'PDF link required to approve' : !sel.boLink ? 'BO link required to approve' : ''} className="px-3 py-2 bg-green-600 text-white rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"><Check className="w-4 h-4" />Approve</button>
                         <button onClick={() => setRetModal(sel)} className="px-3 py-2 bg-orange-500 text-white rounded-lg flex items-center gap-1"><RotateCcw className="w-4 h-4" />Return</button>
                       </>}
                       {sel.status === 'RETURNED' && <>
-                        <button onClick={() => approve(sel)} disabled={!sel.pdfLink} title={!sel.pdfLink ? 'PDF link required to approve' : ''} className="px-3 py-2 bg-green-600 text-white rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"><Check className="w-4 h-4" />Approve</button>
+                        <button onClick={() => approve(sel)} disabled={!sel.pdfLink || !sel.boLink} title={!sel.pdfLink ? 'PDF link required to approve' : !sel.boLink ? 'BO link required to approve' : ''} className="px-3 py-2 bg-green-600 text-white rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"><Check className="w-4 h-4" />Approve</button>
                         <button onClick={() => openAdminEdit(sel)} className="px-3 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-1"><Pencil className="w-4 h-4" />Edit</button>
                       </>}
                       {sel.status === 'APPROVED' && <>

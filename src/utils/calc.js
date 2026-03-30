@@ -10,6 +10,13 @@ export function calcInvoice(input, rc, settings, invoiceType) {
   if (invoiceType === 'LATE_CANCEL') {
     items.push({ description: 'Late Cancellation Fee', qty: 1, unitCents: lateFee, amountCents: lateFee })
     sub += lateFee
+    if (input.useAppearanceFee) {
+      const a = rc.appearanceFeeFullDay || rc.appearanceFee || 0
+      if (a > 0) { items.push({ description: 'Full Day Appearance Fee', qty: 1, unitCents: a, amountCents: a }); sub += a }
+    } else if (input.useAppearanceFeeHalfDay) {
+      const a = rc.appearanceFeeHalfDay || 0
+      if (a > 0) { items.push({ description: 'Half Day Appearance Fee', qty: 1, unitCents: a, amountCents: a }); sub += a }
+    }
     if (input.additionalCharges?.length) {
       for (const ac of input.additionalCharges) {
         if (ac.description && ac.amount > 0) {
@@ -57,7 +64,7 @@ export function calcInvoice(input, rc, settings, invoiceType) {
       sub += a
     }
   } else if (input.hours) {
-    const a = input.hours * rc.hourlyRate
+    const a = Math.round(input.hours * rc.hourlyRate)
     items.push({ description: 'Hourly', qty: input.hours, unitCents: rc.hourlyRate, amountCents: a })
     sub += a
   }

@@ -3,6 +3,7 @@ import { fmt } from '../utils/format'
 
 export default function InvoiceForm({
   title, invoiceNumber, setInvoiceNumber, pdfLink, setPdfLink,
+  boLink, setBoLink,
   input, setInput, invType, setInvType, rc, settings, calc,
   onBack, onSubmit, submitLabel, submitClass, returnComment,
 }) {
@@ -78,7 +79,7 @@ export default function InvoiceForm({
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Hours</label>
-                <input type="number" value={input.hours || ''} onChange={e => setInput({ ...input, hours: parseInt(e.target.value) || 0 })} disabled={eitherAppearanceFee} className={`w-full px-3 py-2 border rounded-lg ${eitherAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
+                <input type="number" step="0.5" value={input.hours || ''} onChange={e => setInput({ ...input, hours: parseFloat(e.target.value) || 0 })} disabled={eitherAppearanceFee} className={`w-full px-3 py-2 border rounded-lg ${eitherAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
                 <p className="text-xs text-gray-500 mt-1">{fmt(rc.hourlyRate)}/hr</p>
               </div>
               <div>
@@ -178,6 +179,20 @@ export default function InvoiceForm({
               <p className="text-red-800">Late Cancellation Fee: <span className="font-bold">{fmt(rc.lateCancelFee || settings.lateCancelFee)}</span></p>
               <p className="text-sm text-red-600 mt-1">Use when a job is cancelled without sufficient notice.</p>
             </div>
+            <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!input.useAppearanceFee} onChange={e => setInput({ ...input, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Full Day Appearance Fee</span>
+                {fullDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(fullDayFee)}</span>}
+              </label>
+              {input.useAppearanceFee && !fullDayFee && <p className="text-xs text-red-500 ml-7">No full day appearance fee set on your rate card.</p>}
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!input.useAppearanceFeeHalfDay} onChange={e => setInput({ ...input, useAppearanceFeeHalfDay: e.target.checked, useAppearanceFee: false })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Half Day Appearance Fee</span>
+                {halfDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(halfDayFee)}</span>}
+              </label>
+              {input.useAppearanceFeeHalfDay && !halfDayFee && <p className="text-xs text-red-500 ml-7">No half day appearance fee set on your rate card.</p>}
+            </div>
             <AdditionalCharges input={input} setInput={setInput} />
           </>}
 
@@ -193,6 +208,11 @@ export default function InvoiceForm({
             <label className="block text-sm font-medium mb-1">Invoice PDF Link <span className="text-gray-400 font-normal">(optional)</span></label>
             <input type="url" value={pdfLink} onChange={e => setPdfLink(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 border rounded-lg text-sm" />
           </div>
+          <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg border">
+            <input type="checkbox" checked={!!boLink} onChange={e => setBoLink(e.target.checked)} className="w-4 h-4 rounded" />
+            <span className="text-sm font-medium">BO Link</span>
+            <span className="text-xs text-gray-400 ml-auto">Required for approval</span>
+          </label>
           <div>
             <label className="block text-sm font-medium mb-1">Notes / Comments <span className="text-gray-400 font-normal">(optional)</span></label>
             <textarea value={input.invoiceComment || ''} onChange={e => setInput({ ...input, invoiceComment: e.target.value })} placeholder="Any additional notes for this invoice..." rows={3} className="w-full px-3 py-2 border rounded-lg text-sm resize-none" />

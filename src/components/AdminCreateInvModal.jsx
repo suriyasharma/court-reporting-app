@@ -205,7 +205,7 @@ export default function AdminCreateInvModal({
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-medium mb-1">Hours</label>
-                  <input type="number" value={adminInvInput.hours || ''} onChange={e => setAdminInvInput({ ...adminInvInput, hours: parseInt(e.target.value) || 0 })} disabled={eitherAppearanceFee} className={`w-full px-3 py-2 border rounded-lg text-sm ${eitherAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
+                  <input type="number" step="0.5" value={adminInvInput.hours || ''} onChange={e => setAdminInvInput({ ...adminInvInput, hours: parseFloat(e.target.value) || 0 })} disabled={eitherAppearanceFee} className={`w-full px-3 py-2 border rounded-lg text-sm ${eitherAppearanceFee ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`} />
                   <p className="text-xs text-gray-400 mt-1">{fmt(rc.hourlyRate)}/hr</p>
                 </div>
                 <div>
@@ -289,6 +289,20 @@ export default function AdminCreateInvModal({
               <div className="p-4 bg-red-50 rounded-lg border border-red-200 text-sm">
                 <p className="text-red-800">Late Cancellation Fee: <span className="font-bold">{fmt(rc.lateCancelFee || settings.lateCancelFee)}</span></p>
               </div>
+              <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!adminInvInput.useAppearanceFee} onChange={e => setAdminInvInput({ ...adminInvInput, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false })} className="w-4 h-4 rounded" />
+                  <span className="text-sm font-medium">Full Day Appearance Fee</span>
+                  {fullDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(fullDayFee)}</span>}
+                </label>
+                {adminInvInput.useAppearanceFee && !fullDayFee && <p className="text-xs text-red-500 ml-7">No full day appearance fee set on this reporter's rate card.</p>}
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!adminInvInput.useAppearanceFeeHalfDay} onChange={e => setAdminInvInput({ ...adminInvInput, useAppearanceFeeHalfDay: e.target.checked, useAppearanceFee: false })} className="w-4 h-4 rounded" />
+                  <span className="text-sm font-medium">Half Day Appearance Fee</span>
+                  {halfDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(halfDayFee)}</span>}
+                </label>
+                {adminInvInput.useAppearanceFeeHalfDay && !halfDayFee && <p className="text-xs text-red-500 ml-7">No half day appearance fee set on this reporter's rate card.</p>}
+              </div>
               <AdditionalChargesSection input={adminInvInput} setInput={setAdminInvInput} rc={rc} />
             </>}
 
@@ -298,6 +312,12 @@ export default function AdminCreateInvModal({
               </div>
               <AdditionalChargesSection input={adminInvInput} setInput={setAdminInvInput} rc={rc} />
             </>}
+
+            <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg border">
+              <input type="checkbox" checked={!!adminInvInput.boLink} onChange={e => setAdminInvInput({ ...adminInvInput, boLink: e.target.checked })} className="w-4 h-4 rounded" />
+              <span className="text-sm font-medium">BO Link</span>
+              <span className="text-xs text-gray-400 ml-auto">Required for approval</span>
+            </label>
 
             <div className="border-t pt-4">
               <p className="text-sm font-semibold mb-2">Preview</p>
