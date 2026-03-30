@@ -93,8 +93,8 @@ export default function InvoiceForm({
               </div>
             </div>
 
-            {/* Video / Exhibit surcharges */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Video / Exhibit / Interpreter surcharges */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Video Pages</label>
                 <input type="number" value={input.videoPages || ''} onChange={e => setInput({ ...input, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
@@ -104,6 +104,11 @@ export default function InvoiceForm({
                 <label className="block text-sm font-medium mb-1">Exhibit Pages</label>
                 <input type="number" value={input.exhibitPages || ''} onChange={e => setInput({ ...input, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
                 <p className="text-xs text-gray-500 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Interpreter Pages</label>
+                <input type="number" value={input.interpreterPages || ''} onChange={e => setInput({ ...input, interpreterPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                <p className="text-xs text-gray-500 mt-1">{fmt(rc.interpreterFee || 0)}/pg</p>
               </div>
             </div>
 

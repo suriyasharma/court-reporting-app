@@ -112,6 +112,16 @@ export function calcInvoice(input, rc, settings, invoiceType) {
     }
   }
 
+  // Interpreter fee — pages × per-page interpreter rate
+  if (input.interpreterPages) {
+    const rate = rc.interpreterFee || 0
+    const a = input.interpreterPages * rate
+    if (a > 0) {
+      items.push({ description: 'Interpreter Fee', qty: input.interpreterPages, unitCents: rate, amountCents: a })
+      sub += a
+    }
+  }
+
   if (input.expediteDays) {
     const exp = expRates.find(e => e.days === input.expediteDays)
     if (exp) {

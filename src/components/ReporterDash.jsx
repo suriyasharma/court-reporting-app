@@ -11,7 +11,7 @@ const emptyInput = () => ({
   additionalCharges: [], caseName: '', jobNumber: '', jobDate: '',
   rb9JobNumber: '', invoiceComment: '', useAppearanceFee: false,
   useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false,
-  numCopies: 0, videoPages: 0, exhibitPages: 0, expeditePages: 0,
+  numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0,
 })
 
 export default function ReporterDash({ user, invoices, setInvoices, jobs, setJobs, settings, onLogout }) {
@@ -71,12 +71,12 @@ export default function ReporterDash({ user, invoices, setInvoices, jobs, setJob
       caseName: inv.caseInfo?.caseName || '', jobNumber: inv.caseInfo?.jobNumber || '',
       jobDate: inv.caseInfo?.jobDate || '', rb9JobNumber: inv.caseInfo?.rb9JobNumber || '',
       invoiceComment: inv.invoiceComment || '', useAppearanceFee: false,
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, expeditePages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0,
     }
     setEditingInv(inv)
     setEditInvType(inv.invoiceType || 'STANDARD')
     setEditInput({
-      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, expeditePages: 0,
+      useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false, numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0,
       ...savedInput,
     })
     setEditInvoiceNumber(inv.invoiceNumber || '')

@@ -120,8 +120,8 @@ export default function AdminEditInvModal({
               </div>
             </div>
 
-            {/* Video / Exhibit surcharges */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Video / Exhibit / Interpreter surcharges */}
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-medium mb-1">Video Pages</label>
                 <input type="number" value={adminEditInvInput.videoPages || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
@@ -131,6 +131,11 @@ export default function AdminEditInvModal({
                 <label className="block text-xs font-medium mb-1">Exhibit Pages</label>
                 <input type="number" value={adminEditInvInput.exhibitPages || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
                 <p className="text-xs text-gray-400 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Interpreter Pages</label>
+                <input type="number" value={adminEditInvInput.interpreterPages || ''} onChange={e => setAdminEditInvInput({ ...adminEditInvInput, interpreterPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                <p className="text-xs text-gray-400 mt-1">{fmt(rc.interpreterFee || 0)}/pg</p>
               </div>
             </div>
 

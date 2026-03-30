@@ -220,8 +220,8 @@ export default function AdminCreateInvModal({
                 </div>
               </div>
 
-              {/* Video / Exhibit surcharges — separate from transcript section */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Video / Exhibit / Interpreter surcharges */}
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-medium mb-1">Video Pages</label>
                   <input type="number" value={adminInvInput.videoPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
@@ -231,6 +231,11 @@ export default function AdminCreateInvModal({
                   <label className="block text-xs font-medium mb-1">Exhibit Pages</label>
                   <input type="number" value={adminInvInput.exhibitPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, exhibitPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
                   <p className="text-xs text-gray-400 mt-1">{fmt(rc.exhibitSurcharge || 0)}/pg surcharge</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Interpreter Pages</label>
+                  <input type="number" value={adminInvInput.interpreterPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, interpreterPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <p className="text-xs text-gray-400 mt-1">{fmt(rc.interpreterFee || 0)}/pg</p>
                 </div>
               </div>
 
