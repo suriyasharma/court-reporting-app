@@ -761,6 +761,12 @@ export default function AdminDash({
                             <p className="font-medium">{inv.invoiceNumber}</p>
                             <p className="text-sm text-gray-500">{inv.reporterName}</p>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${typeColors[inv.invoiceType] || typeColors.STANDARD}`}>{typeLabels[inv.invoiceType] || 'Standard'}</span>
+                            {tab === 'ready_to_pay' && inv.approvedAt && (
+                              <p className="text-xs text-green-600 mt-1">✓ Approved {inv.approvedAt}</p>
+                            )}
+                            {tab === 'paid' && inv.paidAt && (
+                              <p className="text-xs text-purple-600 mt-1">Paid {inv.paidAt}</p>
+                            )}
                           </div>
                           <div className="text-right flex flex-col items-end gap-1">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[inv.status]}`}>{inv.status}</span>
