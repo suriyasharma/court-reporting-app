@@ -557,20 +557,22 @@ export default function AdminDash({
           }
           const JOB_COLS = ['deposition_id','deposition_name','deposition_status','deposition_datetime','event_state','organization_name','format','need_reporter','need_steno','need_video','recording_status','certified_transcript_requested_at','transcript_due_date','turnaround_type','reporter_name','invoiceCreatedAt','submissionDate','onTime','invoicePaidAt']
           const INV_COLS = ['invoiceNumber','invoiceType','status','totalCents','submittedAt','approvedAt','approvedBy','paidAt','paidBy','submissionDate','onTime','pdfLink']
-          const ALL_HEADERS = [...JOB_COLS, ...INV_COLS.map(c => `invoice_${c}`)]
+          const ALL_HEADERS = [...JOB_COLS, 'reporter_is_firm', ...INV_COLS.map(c => `invoice_${c}`)]
           const buildCSV = () => {
             const rows = [ALL_HEADERS.join(',')]
             filteredJobs.forEach(j => {
+              const rep = reporters.find(r => r.displayName === j.reporter_name)
+              const isFirm = escCSV(rep?.isFirm ? 'yes' : rep ? 'no' : '')
               const linked = jobInvoices(j)
               if (linked.length === 0) {
-                rows.push([...JOB_COLS.map(c => escCSV(j[c])), ...INV_COLS.map(() => '')].join(','))
+                rows.push([...JOB_COLS.map(c => escCSV(j[c])), isFirm, ...INV_COLS.map(() => '')].join(','))
               } else {
                 linked.forEach(inv => {
                   const invVals = INV_COLS.map(c => {
                     if (c === 'totalCents') return escCSV(inv.totalCents != null ? (inv.totalCents / 100).toFixed(2) : '')
                     return escCSV(inv[c])
                   })
-                  rows.push([...JOB_COLS.map(c => escCSV(j[c])), ...invVals].join(','))
+                  rows.push([...JOB_COLS.map(c => escCSV(j[c])), isFirm, ...invVals].join(','))
                 })
               }
             })
