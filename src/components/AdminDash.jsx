@@ -40,7 +40,7 @@ export default function AdminDash({
   const [addRep, setAddRep] = useState(false)
   const [addAdm, setAddAdm] = useState(false)
   const [editRep, setEditRep] = useState(null)
-  const [newRep, setNewRep] = useState({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
+  const [newRep, setNewRep] = useState({ displayName: '', code: '', isFirm: false, hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
   const [newAdm, setNewAdm] = useState({ displayName: '', code: '' })
   const [adminCreateInv, setAdminCreateInv] = useState(false)
   const [adminInvRepId, setAdminInvRepId] = useState('')
@@ -320,6 +320,7 @@ export default function AdminDash({
       id: Date.now().toString(),
       displayName: newRep.displayName,
       code: newRep.code.toUpperCase(),
+      isFirm: !!newRep.isFirm,
       rateCard: {
         hourlyRate: Math.round(parseFloat(newRep.hourlyRate) * 100),
         originalPageRate: Math.round(parseFloat(newRep.originalPageRate) * 100),
@@ -341,12 +342,12 @@ export default function AdminDash({
       createdAt: now(),
     }])
     log('Reporter Added', newRep.displayName)
-    setNewRep({ displayName: '', code: '', hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
+    setNewRep({ displayName: '', code: '', isFirm: false, hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
     setAddRep(false)
   }
 
   const openEdit = r => setEditRep({
-    id: r.id, displayName: r.displayName, code: r.code,
+    id: r.id, displayName: r.displayName, code: r.code, isFirm: !!r.isFirm,
     hourlyRate: (r.rateCard.hourlyRate / 100).toFixed(2),
     originalPageRate: (r.rateCard.originalPageRate / 100).toFixed(2),
     copyPageRate: (r.rateCard.copyPageRate / 100).toFixed(2),
@@ -369,6 +370,7 @@ export default function AdminDash({
       ...r,
       displayName: editRep.displayName,
       code: editRep.code.toUpperCase(),
+      isFirm: !!editRep.isFirm,
       rateCard: {
         hourlyRate: Math.round(parseFloat(editRep.hourlyRate) * 100),
         originalPageRate: Math.round(parseFloat(editRep.originalPageRate) * 100),
@@ -696,7 +698,10 @@ export default function AdminDash({
                 <div key={r.id} className="p-4">
                   <div className="flex justify-between mb-2">
                     <div>
-                      <p className="font-medium">{r.displayName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{r.displayName}</p>
+                        {r.isFirm && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Firm</span>}
+                      </div>
                       <p className="text-sm text-gray-500">Code: <span className="font-mono">{r.code}</span></p>
                     </div>
                     <div className="flex gap-2">
@@ -977,6 +982,11 @@ export default function AdminDash({
                 <span className="text-gray-400 text-xs shrink-0">Login code:</span>
                 <span className={newRep.code ? 'text-gray-700' : 'text-gray-300 italic'}>{newRep.code || 'auto-generated from name'}</span>
               </div>
+              <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg border">
+                <input type="checkbox" checked={!!newRep.isFirm} onChange={e => setNewRep({ ...newRep, isFirm: e.target.checked })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Firm</span>
+                <span className="text-xs text-gray-400 ml-auto">Check if this is a firm, not an individual reporter</span>
+              </label>
               <div className="grid grid-cols-3 gap-2">
                 <div><p className="text-xs text-gray-500 mb-1">Hourly Rate ($)</p><input type="number" step="0.01" value={newRep.hourlyRate} onChange={e => setNewRep({ ...newRep, hourlyRate: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><p className="text-xs text-gray-500 mb-1">Original Page ($)</p><input type="number" step="0.01" value={newRep.originalPageRate} onChange={e => setNewRep({ ...newRep, originalPageRate: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
@@ -1043,6 +1053,11 @@ export default function AdminDash({
             <div className="space-y-4">
               <div><label className="block text-sm font-medium mb-1">Name</label><input type="text" value={editRep.displayName} onChange={e => setEditRep({ ...editRep, displayName: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
               <div><label className="block text-sm font-medium mb-1">Login Code</label><input type="text" value={editRep.code} onChange={e => setEditRep({ ...editRep, code: e.target.value })} className="w-full px-3 py-2 border rounded-lg font-mono" /></div>
+              <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg border">
+                <input type="checkbox" checked={!!editRep.isFirm} onChange={e => setEditRep({ ...editRep, isFirm: e.target.checked })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Firm</span>
+                <span className="text-xs text-gray-400 ml-auto">Check if this is a firm, not an individual reporter</span>
+              </label>
               <div className="grid grid-cols-3 gap-2">
                 <div><label className="block text-sm font-medium mb-1">Hourly Rate ($)</label><input type="number" step="0.01" value={editRep.hourlyRate} onChange={e => setEditRep({ ...editRep, hourlyRate: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><label className="block text-sm font-medium mb-1">Original Page ($)</label><input type="number" step="0.01" value={editRep.originalPageRate} onChange={e => setEditRep({ ...editRep, originalPageRate: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
