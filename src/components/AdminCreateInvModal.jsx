@@ -220,8 +220,8 @@ export default function AdminCreateInvModal({
                 </div>
               </div>
 
-              {/* Video / Exhibit / Interpreter surcharges */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* Video / Exhibit / Interpreter / Expert surcharges */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium mb-1">Video Pages</label>
                   <input type="number" value={adminInvInput.videoPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
@@ -236,6 +236,11 @@ export default function AdminCreateInvModal({
                   <label className="block text-xs font-medium mb-1">Interpreter Pages</label>
                   <input type="number" value={adminInvInput.interpreterPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, interpreterPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
                   <p className="text-xs text-gray-400 mt-1">{fmt(rc.interpreterFee || 0)}/pg</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Expert/Med/Tech Pages</label>
+                  <input type="number" value={adminInvInput.expertPages || ''} onChange={e => setAdminInvInput({ ...adminInvInput, expertPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <p className="text-xs text-gray-400 mt-1">{fmt(rc.expertMedTechFee || 0)}/pg</p>
                 </div>
               </div>
 
@@ -309,6 +314,20 @@ export default function AdminCreateInvModal({
             {adminInvType === 'CNA' && <>
               <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 text-sm">
                 <p className="text-amber-800">Certificate of Non-Appearance Fee: <span className="font-bold">{fmt(rc.cnaFee || settings.cnaFee)}</span></p>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!adminInvInput.useAppearanceFee} onChange={e => setAdminInvInput({ ...adminInvInput, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false })} className="w-4 h-4 rounded" />
+                  <span className="text-sm font-medium">Full Day Appearance Fee</span>
+                  {fullDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(fullDayFee)}</span>}
+                </label>
+                {adminInvInput.useAppearanceFee && !fullDayFee && <p className="text-xs text-red-500 ml-7">No full day appearance fee set on this reporter's rate card.</p>}
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!adminInvInput.useAppearanceFeeHalfDay} onChange={e => setAdminInvInput({ ...adminInvInput, useAppearanceFeeHalfDay: e.target.checked, useAppearanceFee: false })} className="w-4 h-4 rounded" />
+                  <span className="text-sm font-medium">Half Day Appearance Fee</span>
+                  {halfDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(halfDayFee)}</span>}
+                </label>
+                {adminInvInput.useAppearanceFeeHalfDay && !halfDayFee && <p className="text-xs text-red-500 ml-7">No half day appearance fee set on this reporter's rate card.</p>}
               </div>
               <AdditionalChargesSection input={adminInvInput} setInput={setAdminInvInput} rc={rc} />
             </>}

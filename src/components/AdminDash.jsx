@@ -18,7 +18,7 @@ const emptyAdminInvInput = () => ({
   additionalCharges: [], caseName: '', jobNumber: '', jobDate: '',
   rb9JobNumber: '', invoiceComment: '', useAppearanceFee: false,
   useAppearanceFeeHalfDay: false, useMinTranscript: false, useInPersonFee: false,
-  numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expeditePages: 0,
+  numCopies: 0, videoPages: 0, exhibitPages: 0, interpreterPages: 0, expertPages: 0, expeditePages: 0,
   jobId: '', submissionDate: '', onTime: '', boLink: false,
 })
 
@@ -40,7 +40,7 @@ export default function AdminDash({
   const [addRep, setAddRep] = useState(false)
   const [addAdm, setAddAdm] = useState(false)
   const [editRep, setEditRep] = useState(null)
-  const [newRep, setNewRep] = useState({ displayName: '', code: '', isFirm: false, hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
+  const [newRep, setNewRep] = useState({ displayName: '', code: '', isFirm: false, hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', expertMedTechFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
   const [newAdm, setNewAdm] = useState({ displayName: '', code: '' })
   const [adminCreateInv, setAdminCreateInv] = useState(false)
   const [adminInvRepId, setAdminInvRepId] = useState('')
@@ -334,6 +334,7 @@ export default function AdminDash({
         videoSurcharge: Math.round(parseFloat(newRep.videoSurcharge || 0) * 100),
         exhibitSurcharge: Math.round(parseFloat(newRep.exhibitSurcharge || 0) * 100),
         interpreterFee: Math.round(parseFloat(newRep.interpreterFee || 0) * 100),
+        expertMedTechFee: Math.round(parseFloat(newRep.expertMedTechFee || 0) * 100),
         inPersonFee: Math.round(parseFloat(newRep.inPersonFee || 0) * 100),
         profileAdditionalFees: newRep.profileAdditionalFees || [],
         expediteRates: newRep.expediteRates,
@@ -342,7 +343,7 @@ export default function AdminDash({
       createdAt: now(),
     }])
     log('Reporter Added', newRep.displayName)
-    setNewRep({ displayName: '', code: '', isFirm: false, hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
+    setNewRep({ displayName: '', code: '', isFirm: false, hourlyRate: '', originalPageRate: '', copyPageRate: '', lateCancelFee: '', cnaFee: '', appearanceFeeFullDay: '', appearanceFeeHalfDay: '', minimumTranscriptAmount: '', minimumTranscriptCopyAmount: '', videoSurcharge: '', exhibitSurcharge: '', interpreterFee: '', expertMedTechFee: '', inPersonFee: '', profileAdditionalFees: [], expediteRates: settings.expediteRates.map(e => ({ ...e, displayAmount: '' })) })
     setAddRep(false)
   }
 
@@ -360,6 +361,7 @@ export default function AdminDash({
     videoSurcharge: ((r.rateCard.videoSurcharge || 0) / 100).toFixed(2),
     exhibitSurcharge: ((r.rateCard.exhibitSurcharge || 0) / 100).toFixed(2),
     interpreterFee: ((r.rateCard.interpreterFee || 0) / 100).toFixed(2),
+    expertMedTechFee: ((r.rateCard.expertMedTechFee || 0) / 100).toFixed(2),
     inPersonFee: ((r.rateCard.inPersonFee || 0) / 100).toFixed(2),
     profileAdditionalFees: r.rateCard.profileAdditionalFees || [],
     expediteRates: (r.rateCard.expediteRates || settings.expediteRates.map(e => ({ ...e }))).map(e => ({ ...e, displayAmount: e.useAmount && e.amount ? (e.amount / 100).toFixed(2) : '' })),
@@ -384,6 +386,7 @@ export default function AdminDash({
         videoSurcharge: Math.round(parseFloat(editRep.videoSurcharge || 0) * 100),
         exhibitSurcharge: Math.round(parseFloat(editRep.exhibitSurcharge || 0) * 100),
         interpreterFee: Math.round(parseFloat(editRep.interpreterFee || 0) * 100),
+        expertMedTechFee: Math.round(parseFloat(editRep.expertMedTechFee || 0) * 100),
         inPersonFee: Math.round(parseFloat(editRep.inPersonFee || 0) * 100),
         profileAdditionalFees: editRep.profileAdditionalFees || [],
         expediteRates: editRep.expediteRates,
@@ -1008,6 +1011,7 @@ export default function AdminDash({
                 <div><p className="text-xs text-gray-500 mb-1">Video Surcharge ($)</p><input type="number" step="0.01" value={newRep.videoSurcharge} onChange={e => setNewRep({ ...newRep, videoSurcharge: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><p className="text-xs text-gray-500 mb-1">Exhibit Surcharge ($)</p><input type="number" step="0.01" value={newRep.exhibitSurcharge} onChange={e => setNewRep({ ...newRep, exhibitSurcharge: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><p className="text-xs text-gray-500 mb-1">Interpreter Fee ($/pg)</p><input type="number" step="0.01" value={newRep.interpreterFee} onChange={e => setNewRep({ ...newRep, interpreterFee: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><p className="text-xs text-gray-500 mb-1">Expert/Med/Tech ($/pg)</p><input type="number" step="0.01" value={newRep.expertMedTechFee} onChange={e => setNewRep({ ...newRep, expertMedTechFee: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><p className="text-xs text-gray-500 mb-1">In-Person Fee ($)</p><input type="number" step="0.01" value={newRep.inPersonFee} onChange={e => setNewRep({ ...newRep, inPersonFee: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 border rounded-lg" /></div>
               </div>
               <div>
@@ -1079,6 +1083,7 @@ export default function AdminDash({
                 <div><label className="block text-sm font-medium mb-1">Video Surcharge ($)</label><input type="number" step="0.01" value={editRep.videoSurcharge} onChange={e => setEditRep({ ...editRep, videoSurcharge: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><label className="block text-sm font-medium mb-1">Exhibit Surcharge ($)</label><input type="number" step="0.01" value={editRep.exhibitSurcharge} onChange={e => setEditRep({ ...editRep, exhibitSurcharge: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><label className="block text-sm font-medium mb-1">Interpreter Fee ($/pg)</label><input type="number" step="0.01" value={editRep.interpreterFee} onChange={e => setEditRep({ ...editRep, interpreterFee: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                <div><label className="block text-sm font-medium mb-1">Expert/Med/Tech ($/pg)</label><input type="number" step="0.01" value={editRep.expertMedTechFee} onChange={e => setEditRep({ ...editRep, expertMedTechFee: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
                 <div><label className="block text-sm font-medium mb-1">In-Person Fee ($)</label><input type="number" step="0.01" value={editRep.inPersonFee} onChange={e => setEditRep({ ...editRep, inPersonFee: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
               </div>
               <div>
