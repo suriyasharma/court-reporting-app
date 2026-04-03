@@ -94,8 +94,8 @@ export default function InvoiceForm({
               </div>
             </div>
 
-            {/* Video / Exhibit / Interpreter surcharges */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Video / Exhibit / Interpreter / Expert surcharges */}
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Video Pages</label>
                 <input type="number" value={input.videoPages || ''} onChange={e => setInput({ ...input, videoPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
@@ -110,6 +110,11 @@ export default function InvoiceForm({
                 <label className="block text-sm font-medium mb-1">Interpreter Pages</label>
                 <input type="number" value={input.interpreterPages || ''} onChange={e => setInput({ ...input, interpreterPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
                 <p className="text-xs text-gray-500 mt-1">{fmt(rc.interpreterFee || 0)}/pg</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Expert/Med/Tech Pages</label>
+                <input type="number" value={input.expertPages || ''} onChange={e => setInput({ ...input, expertPages: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                <p className="text-xs text-gray-500 mt-1">{fmt(rc.expertMedTechFee || 0)}/pg</p>
               </div>
             </div>
 
@@ -200,6 +205,20 @@ export default function InvoiceForm({
             <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
               <p className="text-amber-800">Certificate of Non-Appearance Fee: <span className="font-bold">{fmt(rc.cnaFee || settings.cnaFee)}</span></p>
               <p className="text-sm text-amber-600 mt-1">Use when the witness or party fails to appear.</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg border space-y-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!input.useAppearanceFee} onChange={e => setInput({ ...input, useAppearanceFee: e.target.checked, useAppearanceFeeHalfDay: false })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Full Day Appearance Fee</span>
+                {fullDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(fullDayFee)}</span>}
+              </label>
+              {input.useAppearanceFee && !fullDayFee && <p className="text-xs text-red-500 ml-7">No full day appearance fee set on your rate card.</p>}
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!input.useAppearanceFeeHalfDay} onChange={e => setInput({ ...input, useAppearanceFeeHalfDay: e.target.checked, useAppearanceFee: false })} className="w-4 h-4 rounded" />
+                <span className="text-sm font-medium">Half Day Appearance Fee</span>
+                {halfDayFee > 0 && <span className="text-sm text-gray-500 ml-auto">{fmt(halfDayFee)}</span>}
+              </label>
+              {input.useAppearanceFeeHalfDay && !halfDayFee && <p className="text-xs text-red-500 ml-7">No half day appearance fee set on your rate card.</p>}
             </div>
             <AdditionalCharges input={input} setInput={setInput} />
           </>}

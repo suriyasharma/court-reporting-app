@@ -30,6 +30,13 @@ export function calcInvoice(input, rc, settings, invoiceType) {
   if (invoiceType === 'CNA') {
     items.push({ description: 'Certificate of Non-Appearance', qty: 1, unitCents: cnaFee, amountCents: cnaFee })
     sub += cnaFee
+    if (input.useAppearanceFee) {
+      const a = rc.appearanceFeeFullDay || rc.appearanceFee || 0
+      if (a > 0) { items.push({ description: 'Full Day Appearance Fee', qty: 1, unitCents: a, amountCents: a }); sub += a }
+    } else if (input.useAppearanceFeeHalfDay) {
+      const a = rc.appearanceFeeHalfDay || 0
+      if (a > 0) { items.push({ description: 'Half Day Appearance Fee', qty: 1, unitCents: a, amountCents: a }); sub += a }
+    }
     if (input.additionalCharges?.length) {
       for (const ac of input.additionalCharges) {
         if (ac.description && ac.amount > 0) {
@@ -125,6 +132,16 @@ export function calcInvoice(input, rc, settings, invoiceType) {
     const a = input.interpreterPages * rate
     if (a > 0) {
       items.push({ description: 'Interpreter Fee', qty: input.interpreterPages, unitCents: rate, amountCents: a })
+      sub += a
+    }
+  }
+
+  // Expert/Med/Tech fee — pages × per-page rate
+  if (input.expertPages) {
+    const rate = rc.expertMedTechFee || 0
+    const a = input.expertPages * rate
+    if (a > 0) {
+      items.push({ description: 'Expert/Med/Tech Fee', qty: input.expertPages, unitCents: rate, amountCents: a })
       sub += a
     }
   }
