@@ -56,6 +56,8 @@ export default function AdminDash({
   const [filterDeposition, setFilterDeposition] = useState('')
   const [filterRb9, setFilterRb9] = useState('')
   const [filterInvNum, setFilterInvNum] = useState('')
+  const [filterFirm, setFilterFirm] = useState('all')
+  const [sortInvNum, setSortInvNum] = useState(null)
   const [filterRepSearch, setFilterRepSearch] = useState('')
   const [auditFilterReporter, setAuditFilterReporter] = useState('')
   const [auditFilterDate, setAuditFilterDate] = useState('')
@@ -93,11 +95,24 @@ export default function AdminDash({
     if (filterDate && i.caseInfo?.jobDate !== filterDate) return false
     if (filterRb9 && !i.caseInfo?.rb9JobNumber?.toLowerCase().includes(filterRb9.toLowerCase())) return false
     if (filterInvNum && !i.invoiceNumber?.toLowerCase().includes(filterInvNum.toLowerCase())) return false
+    if (filterFirm !== 'all') {
+      const rep = reporters.find(r => r.displayName === i.reporterName)
+      const isFirm = !!rep?.isFirm
+      if (filterFirm === 'firm' && !isFirm) return false
+      if (filterFirm === 'individual' && isFirm) return false
+    }
     return true
   })
-  const displayed = applyInvFilters(
-    tab === 'pending' ? pending : tab === 'ready_to_pay' ? readyToPay : tab === 'paid' ? paid : tab === 'closed' ? closed : []
-  )
+  const displayed = (() => {
+    const filtered = applyInvFilters(
+      tab === 'pending' ? pending : tab === 'ready_to_pay' ? readyToPay : tab === 'paid' ? paid : tab === 'closed' ? closed : []
+    )
+    if (!sortInvNum) return filtered
+    return [...filtered].sort((a, b) => {
+      const cmp = (a.invoiceNumber || '').localeCompare(b.invoiceNumber || '', undefined, { numeric: true })
+      return sortInvNum === 'asc' ? cmp : -cmp
+    })
+  })()
 
   const log = (action, target) => {
     const entry = { id: Date.now().toString(), action, target, by: user.displayName, at: now() }
@@ -738,10 +753,15 @@ export default function AdminDash({
               <input type="text" placeholder="Deposition name..." value={filterDeposition} onChange={e => { setFilterDeposition(e.target.value); setSel(null) }} className="px-3 py-2 border rounded-lg text-sm w-44" />
               <input type="text" placeholder="RB9 Job #..." value={filterRb9} onChange={e => { setFilterRb9(e.target.value); setSel(null) }} className="px-3 py-2 border rounded-lg text-sm w-36" />
               <input type="text" placeholder="Invoice #..." value={filterInvNum} onChange={e => { setFilterInvNum(e.target.value); setSel(null) }} className="px-3 py-2 border rounded-lg text-sm w-36" />
-              {(filterReporter || filterDate || filterDeposition || filterRb9 || filterInvNum) && (
-                <button onClick={() => { setFilterReporter(''); setFilterDate(''); setFilterDeposition(''); setFilterRb9(''); setFilterInvNum('') }} className="text-xs text-indigo-600 hover:underline">Clear</button>
+              <div className="flex gap-1">
+                {[['all','All'],['firm','Firm'],['individual','Individual']].map(([v,l]) => (
+                  <button key={v} onClick={() => { setFilterFirm(v); setSel(null) }} className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${filterFirm === v ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}>{l}</button>
+                ))}
+              </div>
+              {(filterReporter || filterDate || filterDeposition || filterRb9 || filterInvNum || filterFirm !== 'all') && (
+                <button onClick={() => { setFilterReporter(''); setFilterDate(''); setFilterDeposition(''); setFilterRb9(''); setFilterInvNum(''); setFilterFirm('all') }} className="text-xs text-indigo-600 hover:underline">Clear</button>
               )}
-              {(filterReporter || filterDate || filterDeposition || filterRb9 || filterInvNum) && (
+              {(filterReporter || filterDate || filterDeposition || filterRb9 || filterInvNum || filterFirm !== 'all') && (
                 <span className="text-xs text-gray-500 ml-auto">{displayed.length} result{displayed.length !== 1 ? 's' : ''}</span>
               )}
             </div>
@@ -750,7 +770,12 @@ export default function AdminDash({
               {/* Invoice list */}
               <div className="bg-white rounded-xl shadow-sm border">
                 <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-                  <span className="font-semibold">Invoices</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">Invoices</span>
+                    <button onClick={() => setSortInvNum(s => s === null ? 'asc' : s === 'asc' ? 'desc' : null)} className={`text-xs px-2 py-1 rounded border ${sortInvNum ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`} title="Sort by invoice number">
+                      Inv # {sortInvNum === 'asc' ? '↑' : sortInvNum === 'desc' ? '↓' : '↕'}
+                    </button>
+                  </div>
                   {tab === 'pending' && (
                     <button
                       onClick={() => reporters.length > 0 ? setAdminCreateInv(true) : alert('Add at least one reporter before creating an invoice.')}
@@ -850,12 +875,16 @@ export default function AdminDash({
                         </div>
                       </div>
                     )}
-                    {sel.invoiceComment && (
-                      <div className="my-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <p className="text-xs font-semibold text-blue-700 mb-1">Notes / Comments</p>
-                        <p className="text-sm text-blue-800">{sel.invoiceComment}</p>
-                      </div>
-                    )}
+                    <div className="my-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <p className="text-xs font-semibold text-blue-700 mb-1">Notes / Comments</p>
+                      <textarea
+                        value={sel.invoiceComment || ''}
+                        onChange={e => { const updated = { ...sel, invoiceComment: e.target.value }; setInvoices(invoices.map(i => i.id === sel.id ? updated : i)); setSel(updated) }}
+                        placeholder="Add notes..."
+                        rows={3}
+                        className="w-full px-2 py-1.5 border rounded text-sm bg-white resize-none"
+                      />
+                    </div>
 
                     <table className="w-full text-sm my-4 border rounded">
                       <thead className="bg-gray-50">
