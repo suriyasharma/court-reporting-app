@@ -334,7 +334,10 @@ export default function AdminCreateInvModal({
 
             <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg border">
               <input type="checkbox" checked={!!adminInvInput.boLink} onChange={e => setAdminInvInput({ ...adminInvInput, boLink: e.target.checked })} className="w-4 h-4 rounded" />
-              <span className="text-sm font-medium">BO Link</span>
+              <div>
+                <span className="text-sm font-medium">BO Link</span>
+                <p className="text-xs text-gray-500 mt-0.5">Check this box to verify you put the link in Backoffice internal notes for billing</p>
+              </div>
               <span className="text-xs text-gray-400 ml-auto">Required for approval</span>
             </label>
 
