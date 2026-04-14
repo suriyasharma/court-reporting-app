@@ -60,7 +60,7 @@ export default function AdminCreateInvModal({
 
   const selectReporter = r => { setAdminInvRepId(r.id); setRepSearch(r.displayName); setRepOpen(false) }
   const selectJob = j => {
-    const dateStr = j.deposition_datetime ? j.deposition_datetime.split('T')[0] : ''
+    const dateStr = j.deposition_datetime ? j.deposition_datetime.substring(0, 10) : ''
     const newInput = { ...adminInvInput, jobId: j.deposition_id, caseName: j.deposition_name || '', jobNumber: j.deposition_id || '', jobDate: dateStr }
     if (newInput.submissionDate && j.transcript_due_date) {
       newInput.onTime = newInput.submissionDate <= j.transcript_due_date.split('T')[0] ? 'yes' : 'no'

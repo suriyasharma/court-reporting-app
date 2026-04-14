@@ -103,8 +103,8 @@ export default function JobsTab({ jobs, setJobs, reporters, onLog }) {
     .sort((a, b) => {
       if (sortKey === 'deposition_datetime' && sortDir === 'asc') {
         const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        const ad = (a.deposition_datetime || '').split('T')[0]
-        const bd = (b.deposition_datetime || '').split('T')[0]
+        const ad = (a.deposition_datetime || '').substring(0, 10)
+        const bd = (b.deposition_datetime || '').substring(0, 10)
         const aFuture = ad >= tenDaysAgo
         const bFuture = bd >= tenDaysAgo
         if (aFuture && !bFuture) return -1

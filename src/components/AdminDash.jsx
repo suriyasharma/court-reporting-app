@@ -562,7 +562,7 @@ export default function AdminDash({
         {/* Export tab */}
         {tab === 'export' && (() => {
           const filteredJobs = jobs.filter(j => {
-            const d = (j.deposition_datetime || '').split('T')[0]
+            const d = (j.deposition_datetime || '').substring(0, 10)
             if (exportStartDate && d < exportStartDate) return false
             if (exportEndDate && d > exportEndDate) return false
             return true
@@ -648,7 +648,7 @@ export default function AdminDash({
                             <tr key={`${j.deposition_id}-${idx}`} className="hover:bg-gray-50">
                               {idx === 0 && <td className="px-3 py-2 font-medium" rowSpan={rows.length}>{j.deposition_name}</td>}
                               {idx === 0 && <td className="px-3 py-2" rowSpan={rows.length}><span className={`px-1.5 py-0.5 rounded text-xs ${STATUS_COLORS[j.deposition_status] || 'bg-gray-100'}`}>{j.deposition_status}</span></td>}
-                              {idx === 0 && <td className="px-3 py-2 whitespace-nowrap" rowSpan={rows.length}>{j.deposition_datetime ? j.deposition_datetime.split('T')[0] : '—'}</td>}
+                              {idx === 0 && <td className="px-3 py-2 whitespace-nowrap" rowSpan={rows.length}>{j.deposition_datetime ? j.deposition_datetime.substring(0, 10) : '—'}</td>}
                               {idx === 0 && <td className="px-3 py-2" rowSpan={rows.length}>{j.organization_name}</td>}
                               {idx === 0 && <td className="px-3 py-2" rowSpan={rows.length}>{j.reporter_name || <span className="text-gray-300">—</span>}</td>}
                               <td className="px-3 py-2 font-mono">{inv ? inv.invoiceNumber : <span className="text-gray-300">—</span>}</td>
