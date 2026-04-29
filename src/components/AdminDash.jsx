@@ -251,12 +251,58 @@ export default function AdminDash({
   }
 
   // ── Reporter management ────────────────────────────────────────────────────
-  const REPORTER_TEMPLATE_CSV = 'name,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee_full_day,appearance_fee_half_day,minimum_transcript_amount,minimum_transcript_copy_amount,video_surcharge,exhibit_surcharge,interpreter_fee,in_person_fee,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent,expedite_1d_amount,expedite_2d_amount,expedite_3d_amount,expedite_4d_amount,expedite_5d_amount,expedite_6d_amount,expedite_7d_amount,expedite_8d_amount\nJane Reporter,75.00,6.50,1.25,150.00,125.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10,0,0,0,0,0,0,0,0\nJohn Reporter,80.00,7.00,1.50,150.00,125.00,50.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0,0,0,0,0,0,0,0,1.50,1.20,0.90,0.65,0.50,0.35,0.20,0.10'
+  const REPORTER_TEMPLATE_CSV = 'name,hourly_rate,original_page_rate,copy_page_rate,late_cancel_fee,cna_fee,appearance_fee_full_day,appearance_fee_half_day,minimum_transcript_amount,minimum_transcript_copy_amount,video_surcharge,exhibit_surcharge,interpreter_fee,expert_med_tech_fee,in_person_fee,expedite_1d_percent,expedite_2d_percent,expedite_3d_percent,expedite_4d_percent,expedite_5d_percent,expedite_6d_percent,expedite_7d_percent,expedite_8d_percent,expedite_1d_amount,expedite_2d_amount,expedite_3d_amount,expedite_4d_amount,expedite_5d_amount,expedite_6d_amount,expedite_7d_amount,expedite_8d_amount,is_firm\nJane Reporter,75.00,6.50,1.25,150.00,125.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,100,80,60,45,35,25,15,10,0,0,0,0,0,0,0,0,no\nJohn Reporter,80.00,7.00,1.50,150.00,125.00,50.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0,0,0,0,0,0,0,0,1.50,1.20,0.90,0.65,0.50,0.35,0.20,0.10,no'
   const downloadReporterTemplate = () => {
     const blob = new Blob([REPORTER_TEMPLATE_CSV], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url; a.download = 'reporter-template.csv'
+    document.body.appendChild(a); a.click()
+    document.body.removeChild(a); URL.revokeObjectURL(url)
+  }
+  const exportReportersCSV = () => {
+    const expDays = [1,2,3,4,5,6,7,8]
+    const headers = [
+      'name','hourly_rate','original_page_rate','copy_page_rate',
+      'late_cancel_fee','cna_fee','appearance_fee_full_day','appearance_fee_half_day',
+      'minimum_transcript_amount','minimum_transcript_copy_amount',
+      'video_surcharge','exhibit_surcharge','interpreter_fee','expert_med_tech_fee','in_person_fee',
+      ...expDays.map(d => `expedite_${d}d_percent`),
+      ...expDays.map(d => `expedite_${d}d_amount`),
+      'is_firm',
+    ]
+    const fmtD = cents => ((cents || 0) / 100).toFixed(2)
+    const rows = reporters.map(rep => {
+      const rc = rep.rateCard || {}
+      const expRates = rc.expediteRates || settings.expediteRates
+      const expByDay = {}
+      expRates.forEach(e => { expByDay[e.days] = e })
+      return [
+        rep.displayName,
+        fmtD(rc.hourlyRate),
+        fmtD(rc.originalPageRate),
+        fmtD(rc.copyPageRate),
+        fmtD(rc.lateCancelFee),
+        fmtD(rc.cnaFee),
+        fmtD(rc.appearanceFeeFullDay || rc.appearanceFee),
+        fmtD(rc.appearanceFeeHalfDay),
+        fmtD(rc.minimumTranscriptAmount),
+        fmtD(rc.minimumTranscriptCopyAmount),
+        fmtD(rc.videoSurcharge),
+        fmtD(rc.exhibitSurcharge),
+        fmtD(rc.interpreterFee),
+        fmtD(rc.expertMedTechFee),
+        fmtD(rc.inPersonFee),
+        ...expDays.map(d => (expByDay[d]?.useAmount ? 0 : (expByDay[d]?.percent || 0))),
+        ...expDays.map(d => (expByDay[d]?.useAmount ? fmtD(expByDay[d]?.amount) : '0.00')),
+        rep.isFirm ? 'yes' : 'no',
+      ].join(',')
+    })
+    const csv = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'reporters-export.csv'
     document.body.appendChild(a); a.click()
     document.body.removeChild(a); URL.revokeObjectURL(url)
   }
@@ -299,6 +345,7 @@ export default function AdminDash({
           videoSurcharge: Math.round(parseFloat(r.video_surcharge || 0) * 100),
           exhibitSurcharge: Math.round(parseFloat(r.exhibit_surcharge || 0) * 100),
           interpreterFee: Math.round(parseFloat(r.interpreter_fee || 0) * 100),
+          expertMedTechFee: Math.round(parseFloat(r.expert_med_tech_fee || 0) * 100),
           inPersonFee: Math.round(parseFloat(r.in_person_fee || 0) * 100),
           expediteRates: settings.expediteRates.map(exp => {
             const amtStr = r[`expedite_${exp.days}d_amount`]
@@ -315,11 +362,12 @@ export default function AdminDash({
             }
           }),
         }
+        const isFirm = r.is_firm ? r.is_firm.trim().toLowerCase() === 'yes' : false
         if (map[code]) {
-          map[code] = { ...map[code], displayName: r.name, code, rateCard, editedBy: user.displayName, editedAt: now() }
+          map[code] = { ...map[code], displayName: r.name, code, rateCard, isFirm, editedBy: user.displayName, editedAt: now() }
           updated++
         } else {
-          map[code] = { id: `${Date.now()}-${rowIdx}-${Math.random().toString(36).slice(2)}`, displayName: r.name, code, rateCard, createdBy: user.displayName, createdAt: now() }
+          map[code] = { id: `${Date.now()}-${rowIdx}-${Math.random().toString(36).slice(2)}`, displayName: r.name, code, rateCard, isFirm, createdBy: user.displayName, createdAt: now() }
           added++
         }
       })
@@ -706,6 +754,7 @@ export default function AdminDash({
               </div>
               <div className="flex gap-2 flex-wrap">
                 <button onClick={downloadReporterTemplate} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 flex items-center gap-1"><Download className="w-4 h-4" />CSV Template</button>
+                <button onClick={exportReportersCSV} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 flex items-center gap-1"><Download className="w-4 h-4" />Export Reporters</button>
                 <label className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-gray-200 flex items-center gap-1">
                   <Upload className="w-4 h-4" />Upload CSV
                   <input type="file" accept=".csv" onChange={handleReporterCSV} className="hidden" />
