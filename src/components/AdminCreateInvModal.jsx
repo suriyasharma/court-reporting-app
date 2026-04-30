@@ -53,7 +53,7 @@ export default function AdminCreateInvModal({
   const selJob = jobs.find(j => j.deposition_id === adminInvInput.jobId)
   const rc = selRep ? selRep.rateCard : { hourlyRate: 0, originalPageRate: 0, copyPageRate: 0, lateCancelFee: 0, cnaFee: 0 }
   const calc = selRep ? calcInvoice(adminInvInput, rc, settings, adminInvType) : { lineItems: [], totalCents: 0 }
-  const canSubmit = adminInvRepId && adminInvNumber.trim() && adminInvInput.jobId && calc.totalCents > 0
+  const canSubmit = adminInvRepId && adminInvNumber.trim() && calc.totalCents > 0
 
   const filteredReporters = reporters.filter(r => r.displayName.toLowerCase().includes(repSearch.toLowerCase()))
   const filteredJobs = jobs.filter(j => j.deposition_name && j.deposition_name.toLowerCase().includes(jobSearch.toLowerCase()))
@@ -108,7 +108,7 @@ export default function AdminCreateInvModal({
 
           {/* Job picker */}
           <div>
-            <label className="block text-sm font-medium mb-1">Job <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium mb-1">Job</label>
             <div className="relative">
               <input type="text" value={jobSearch} onChange={e => { setJobSearch(e.target.value); setJobOpen(true); if (!e.target.value) setAdminInvInput({ ...adminInvInput, jobId: '', caseName: '', jobNumber: '', jobDate: '' }) }} onFocus={() => setJobOpen(true)} onBlur={() => setTimeout(() => setJobOpen(false), 150)} placeholder="Search by job name..." className="w-full px-3 py-2 border rounded-lg" />
               {jobOpen && filteredJobs.length > 0 && (
